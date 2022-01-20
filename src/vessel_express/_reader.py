@@ -11,6 +11,7 @@ https://napari.org/docs/dev/plugins/for_plugin_developers.html
 """
 import numpy as np
 from napari_plugin_engine import napari_hook_implementation
+from tifffile import imread
 
 
 @napari_hook_implementation
@@ -35,7 +36,7 @@ def napari_get_reader(path):
         path = path[0]
 
     # if we know we cannot read the file, we immediately return None.
-    if not path.endswith(".npy"):
+    if not path.endswith(".tiff"):
         return None
 
     # otherwise we return the *function* that can read ``path``.
@@ -66,11 +67,14 @@ def reader_function(path):
     """
     # handle both a string and a list of strings
     paths = [path] if isinstance(path, str) else path
+
+    data = imread(path)
+    """
     # load all files into array
     arrays = [np.load(_path) for _path in paths]
     # stack arrays into single array
     data = np.squeeze(np.stack(arrays))
-
+    """
     # optional kwargs for the corresponding viewer.add_* method
     add_kwargs = {}
 
