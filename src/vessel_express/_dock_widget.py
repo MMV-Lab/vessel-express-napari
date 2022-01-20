@@ -4,6 +4,12 @@ from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayo
 from qtpy.QtCore import Qt
 from napari.layers import Image
 
+# packages required by processing functions
+from utils import vesselness_filter
+from aicssegmentation.core.pre_processing_utils import  edge_preserving_smoothing_3d
+from skimage.morphology import remove_small_objects, binary_closing, cube
+from aicssegmentation.core.utils import topology_preserving_thinning
+
 
 class VesselExpress(QWidget):
     def __init__(self, napari_viewer):
@@ -345,26 +351,118 @@ class VesselExpress(QWidget):
         self.n_min_size.setText(str(self.s_min_size.value()))
 
     # Button onclick functions
-    def _smoothing(self):
-        pass
+    def _smoothing(self, image):
+        """
+        perform edge preserving smoothing
+        """
+        out = edge_preserving_smoothing_3d(image)
+        return out
 
-    def _threshold(self):   # HALVE VALUE
-        pass
+    def _threshold(self, image, scale):   # HALVE VALUE
+        """
+        apply vesselness filter on images
 
-    def _vesselness(self):  # HALVE VALUE
-        pass
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        scale: Union[float, int]
+            how many fold of the standard deviation of the image intensity 
+            will be used to calculate the threshold
+
+        Return
+        -------------
+        np.ndarray
+
+        """
+        thresh = image.mean() + scale * image.std()
+        return image > thresh
+
+
+    def _vesselness(self, image, dim, sigma, cutoff_method):  # HALVE VALUE
+        """
+        apply vesselness filter on images
+
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        dim: int
+            the dimenstion of the operation, 2 or 3
+        sigma: float
+            the kernal size of the vesselness filter
+        cutoff_method: str
+            the method to use for binarization
+
+        Return
+        -------------
+        np.ndarray
+        """
+        out = vesselness_filter(image, dim, sigma, cutoff_method)
+        return out
 
     def _merge(self):
+        # TODO: need to have a clear definition of how images are passed in
         pass
 
-    def _closing(self):
-        pass
+    def _closing(self, image, scale):
+        """
+        perform morphological closing to remove small gaps in segmentation
 
-    def _thinning(self):    # HALVE ONE VALUE
-        pass
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        scale: int
+            the kernal size of the closing operation
 
-    def _cleaning(self):
-        pass
+        Return
+        -------------
+        np.ndarray
+        """
+        out = binary_closing(image, cube(scale))
+        return out
+
+    def _thinning(self, image, min_thickness, thin):    # HALVE ONE VALUE
+        """
+        perform topology preserving thinning
+
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        min_thickness: float
+            the minimal thickness to kept without breaking
+        thin: int
+            the amount of thinning
+
+        Return
+        -------------
+        np.ndarray
+        """
+
+        out = topology_preserving_thinning(image > 0, min_thickness, thin)
+        return out
+
+
+    def _cleaning(self, image, min_size):
+        """
+        clean up small objects from the segmentation result
+
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        min_size: int
+            the size for objects to be cleaned
+
+        Return
+        -------------
+        np.ndarray
+        """
+
+        out = remove_small_objects(image > 0, min_size)
+        return out
 
     # Combobox update function
     def _update_layer_lists(self, index = 0, new_index = 0, old_value = "", value = "", ):
