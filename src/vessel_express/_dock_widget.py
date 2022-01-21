@@ -7,6 +7,7 @@ from napari.layers import Image
 
 # packages required by processing functions
 from .utils import vesselness_filter
+from numpy import logical_or
 from aicssegmentation.core.pre_processing_utils import  edge_preserving_smoothing_3d
 from skimage.morphology import remove_small_objects, binary_closing, cube
 from aicssegmentation.core.utils import topology_preserving_thinning
@@ -412,19 +413,31 @@ class VesselExpress(QWidget):
                 image = layer.data
                 break
         dim = (2,3)[self.c_operation_dim == "2D"]
+        print(dim)
         sigma = self.s_sigma.value()/2
         cutoff_method = self.c_cutoff_method.currentText()
         out = vesselness_filter(image, dim, sigma, cutoff_method)
         self.viewer.add_image(data = out, name = "Vesselnessed Image")
 
     def _merge(self):
-        layer_1 = self.c_merge_1.currentText()
-        layer_2 = self.c_merge_2.currentText()
-        layer_3 = self.c_merge_3.currentText()
-        # TODO: need to have a clear definition of how images are passed in
-        # suggestion: parameters images (array of images) and amount (or similar name)(either 2 or 3)
-        # otherwise just one array of images?
-        pass
+        layer_list = [
+            self.c_merge_1.currentText(),
+            self.c_merge_1.currentText(),
+            self.c_merge_3.currentText()
+        ]
+        counter = 0
+        for layer in self.viewer.layers:
+            if layer.name in layer_list and type(layer) == Image:
+                image = layer.data
+                if counter == 0:
+                    seg = image > 0
+                else:
+                    seg = logical_or(seg, image > 0)
+                counter += 1
+                if counter == 3:
+                    break
+        self.viewer.add_image(data = seg, name = "Merged_Image")
+        
 
     def _closing(self):
         """
