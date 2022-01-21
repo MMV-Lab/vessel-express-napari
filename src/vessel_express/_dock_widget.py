@@ -1,8 +1,15 @@
 from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy
+import napari
 from napari_plugin_engine import napari_hook_implementation
 from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea
 from qtpy.QtCore import Qt
 from napari.layers import Image
+
+# packages required by processing functions
+from .utils import vesselness_filter
+from aicssegmentation.core.pre_processing_utils import  edge_preserving_smoothing_3d
+from skimage.morphology import remove_small_objects, binary_closing, cube
+from aicssegmentation.core.utils import topology_preserving_thinning
 
 
 class VesselExpress(QWidget):
@@ -151,11 +158,9 @@ class VesselExpress(QWidget):
         self.c_operation_dim.addItem("3D")
         self.c_operation_dim.setCurrentIndex(1)
         self.c_cutoff_method = QComboBox()
-        self.c_cutoff_method.addItem("Method 1")
-        self.c_cutoff_method.addItem("Method 2")
-        self.c_cutoff_method.addItem("Method 3")
-        self.c_cutoff_method.addItem("Method 4")
-        self.c_cutoff_method.addItem("Method 5")
+        self.c_cutoff_method.addItem("threshold_li")
+        self.c_cutoff_method.addItem("threshold_triangle")
+        self.c_cutoff_method.addItem("threshold_otsu")
         self.c_merge_1 = QComboBox()
         self.c_merge_2 = QComboBox()
         self.c_merge_3 = QComboBox()
@@ -346,25 +351,152 @@ class VesselExpress(QWidget):
 
     # Button onclick functions
     def _smoothing(self):
-        pass
+        """
+        perform edge preserving smoothing
+        """
+
+        selected_layer = self.c_smoothing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                data = layer.data
+                break
+        out = edge_preserving_smoothing_3d(data)
+        self.viewer.add_image(data = out, name = "Smoothed Image")
 
     def _threshold(self):   # HALVE VALUE
-        pass
+        """
+        apply vesselness filter on images
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        scale: Union[float, int]
+            how many fold of the standard deviation of the image intensity 
+            will be used to calculate the threshold
+        Return
+        -------------
+        np.ndarray
+        """
+
+        selected_layer = self.c_smoothing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        scale = self.s_scale.value()/2
+        thresh = image.mean() + scale * image.std()
+        out = image > thresh
+        self.viewer.add_image(data = out, name = "Thresholded Image")
 
     def _vesselness(self):  # HALVE VALUE
-        pass
+        """
+        apply vesselness filter on images
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        dim: int
+            the dimenstion of the operation, 2 or 3
+        sigma: float
+            the kernal size of the vesselness filter
+        cutoff_method: str
+            the method to use for binarization
+        Return
+        -------------
+        np.ndarray
+        """
+
+        selected_layer = self.c_smoothing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        dim = (2,3)[self.c_operation_dim == "2D"]
+        sigma = self.s_sigma.value()/2
+        cutoff_method = self.c_cutoff_method.currentText()
+        out = vesselness_filter(image, dim, sigma, cutoff_method)
+        self.viewer.add_image(data = out, name = "Vesselnessed Image")
 
     def _merge(self):
+        layer_1 = self.c_merge_1.currentText()
+        layer_2 = self.c_merge_2.currentText()
+        layer_3 = self.c_merge_3.currentText()
+        # TODO: need to have a clear definition of how images are passed in
+        # suggestion: parameters images (array of images) and amount (or similar name)(either 2 or 3)
+        # otherwise just one array of images?
         pass
 
     def _closing(self):
-        pass
+        """
+        perform morphological closing to remove small gaps in segmentation
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        scale: int
+            the kernal size of the closing operation
+        Return
+        -------------
+        np.ndarray
+        """
+
+        selected_layer = self.c_closing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        scale = self.s_kernel_size.value()
+        out = binary_closing(image, cube(scale))
+        self.viewer.add_image(data = out, name = "Post-closed Image")
 
     def _thinning(self):    # HALVE ONE VALUE
-        pass
+        """
+        perform topology preserving thinning
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        min_thickness: float
+            the minimal thickness to kept without breaking
+        thin: int
+            the amount of thinning
+        Return
+        -------------
+        np.ndarray
+        """
+
+        selected_layer = self.c_closing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        min_thickness = self.s_min_thick.value()/2
+        thin = self.s_thin.value()/2
+        out = topology_preserving_thinning(image > 0, min_thickness, thin)
+        self.viewer.add_image(data = out, name = "Post-thinned Image")
 
     def _cleaning(self):
-        pass
+        """
+        clean up small objects from the segmentation result
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        min_size: int
+            the size for objects to be cleaned
+        Return
+        -------------
+        np.ndarray
+        """
+
+        selected_layer = self.c_closing.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        min_size = self.s_min_size.value()/2
+        out = remove_small_objects(image > 0, min_size)
+        self.viewer.add_image(data = out, name = "Post-cleaned Image")
 
     # Combobox update function
     def _update_layer_lists(self, index = 0, new_index = 0, old_value = "", value = "", ):
@@ -379,6 +511,21 @@ class VesselExpress(QWidget):
         for box in self.list_comboboxes:
             for name in names:
                 box.addItem(name)
+
+    """
+    # This can be interesting if we decide to use the currently selected layers instead of comboboxes
+    def _get_data_from_layer(self, amount = 1):
+        data = []
+        # TODO: Check if layerlist has as many imagelayers as is requested
+        for layer in self.viewer.layers.selection:
+            if type(layer) == Image:
+                data.append(layer.data)
+                amount = amount - 1
+                if amount == 0:
+                    return data
+        # TODO: Implement error if less layers exist than requested
+        pass
+    """
         
 
 @napari_hook_implementation
