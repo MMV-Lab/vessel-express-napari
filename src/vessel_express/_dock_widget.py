@@ -19,6 +19,7 @@ class VesselExpress(QWidget):
         self.viewer = napari_viewer
 
         # Labels
+        self.l_title = QLabel("<font color='green'>VesselExpress Segmentation Parameter Tuning:</font>")
         self.l_1 = QLabel("smoothing:")
         self.l_2 = QLabel("core-threshold:")
         self.l_3 = QLabel("core-vesselness:")
@@ -311,6 +312,7 @@ class VesselExpress(QWidget):
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
+        self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.zone_1)
         self.content.layout().addWidget(self.line_1)
         self.content.layout().addWidget(self.zone_2)
