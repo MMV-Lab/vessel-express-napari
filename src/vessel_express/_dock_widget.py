@@ -173,7 +173,7 @@ class VesselExpress(QWidget):
             self.c_merge_2,self.c_merge_3,self.c_closing,self.c_thinning,self.c_cleaning]
 
         # Add content to layer selecting comboboxes
-        self.c_merge_3.addItem("N/A")
+        self._update_layer_lists()
         self.viewer.layers.events.inserted.connect(self._update_layer_lists)
         self.viewer.layers.events.removed.connect(self._update_layer_lists)
         self.viewer.layers.events.reordered.connect(self._update_layer_lists)
