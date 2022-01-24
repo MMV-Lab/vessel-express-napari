@@ -412,7 +412,7 @@ class VesselExpress(QWidget):
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
                 break
-        dim = (2,3)[self.c_operation_dim == "2D"]
+        dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
         print(f"running {dim}D vesselness filter ...")
         sigma = self.s_sigma.value()/2
         cutoff_method = self.c_cutoff_method.currentText()
