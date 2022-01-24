@@ -7,6 +7,7 @@ from napari.layers import Image
 
 # packages required by processing functions
 from .utils import vesselness_filter
+from numpy import logical_or
 from aicssegmentation.core.pre_processing_utils import  edge_preserving_smoothing_3d
 from skimage.morphology import remove_small_objects, binary_closing, cube
 from aicssegmentation.core.utils import topology_preserving_thinning
@@ -361,7 +362,7 @@ class VesselExpress(QWidget):
                 data = layer.data
                 break
         out = edge_preserving_smoothing_3d(data)
-        self.viewer.add_image(data = out, name = "Smoothed Image")
+        self.viewer.add_image(data = out, name = "smoothed_Image")
 
     def _threshold(self):   # HALVE VALUE
         """
@@ -386,7 +387,7 @@ class VesselExpress(QWidget):
         scale = self.s_scale.value()/2
         thresh = image.mean() + scale * image.std()
         out = image > thresh
-        self.viewer.add_image(data = out, name = "Thresholded Image")
+        self.viewer.add_image(data = out, name = f"threshold_{scale}", blending="additive")
 
     def _vesselness(self):  # HALVE VALUE
         """
@@ -412,19 +413,32 @@ class VesselExpress(QWidget):
                 image = layer.data
                 break
         dim = (2,3)[self.c_operation_dim == "2D"]
+        print(f"running {dim}D vesselness filter ...")
         sigma = self.s_sigma.value()/2
         cutoff_method = self.c_cutoff_method.currentText()
         out = vesselness_filter(image, dim, sigma, cutoff_method)
-        self.viewer.add_image(data = out, name = "Vesselnessed Image")
+        print("vesselness filter is done")
+        self.viewer.add_image(data = out, name = f"ves_{dim}D_{sigma}_{cutoff_method}", blending="additive")
 
     def _merge(self):
-        layer_1 = self.c_merge_1.currentText()
-        layer_2 = self.c_merge_2.currentText()
-        layer_3 = self.c_merge_3.currentText()
-        # TODO: need to have a clear definition of how images are passed in
-        # suggestion: parameters images (array of images) and amount (or similar name)(either 2 or 3)
-        # otherwise just one array of images?
-        pass
+        layer_list = [
+            self.c_merge_1.currentText(),
+            self.c_merge_2.currentText(),
+            self.c_merge_3.currentText()
+        ]
+        counter = 0
+        for layer in self.viewer.layers:
+            if layer.name in layer_list and type(layer) == Image:
+                image = layer.data
+                if counter == 0:
+                    seg = image > 0
+                else:
+                    seg = logical_or(seg, image > 0)
+                counter += 1
+                if counter == 3:
+                    break
+        self.viewer.add_image(data = seg, name = "merged_segmentation", blending="additive")
+        
 
     def _closing(self):
         """
@@ -447,7 +461,7 @@ class VesselExpress(QWidget):
                 break
         scale = self.s_kernel_size.value()
         out = binary_closing(image, cube(scale))
-        self.viewer.add_image(data = out, name = "Post-closed Image")
+        self.viewer.add_image(data = out, name = "closed_segmentation", blending="additive")
 
     def _thinning(self):    # HALVE ONE VALUE
         """
@@ -465,7 +479,7 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_closing.currentText()
+        selected_layer = self.c_thinning.currentText()
         for layer in self.viewer.layers:
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
@@ -473,7 +487,7 @@ class VesselExpress(QWidget):
         min_thickness = self.s_min_thick.value()/2
         thin = self.s_thin.value()/2
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
-        self.viewer.add_image(data = out, name = "Post-thinned Image")
+        self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
 
     def _cleaning(self):
         """
@@ -489,14 +503,14 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_closing.currentText()
+        selected_layer = self.c_cleaning.currentText()
         for layer in self.viewer.layers:
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
                 break
         min_size = self.s_min_size.value()/2
         out = remove_small_objects(image > 0, min_size)
-        self.viewer.add_image(data = out, name = "Post-cleaned Image")
+        self.viewer.add_image(data = out, name = "cleaned_segmentation", blending="additive")
 
     # Combobox update function
     def _update_layer_lists(self, index = 0, new_index = 0, old_value = "", value = "", ):
