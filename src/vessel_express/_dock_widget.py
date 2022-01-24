@@ -39,14 +39,50 @@ class VesselExpress(QWidget):
         self.l_min_size = QLabel("min_size")
 
         # Set tooltips
-        self.l_1.setToolTip("PLACEHOLDER: Very Smooth!")
-        self.l_2.setToolTip("PLACEHOLDER: The core holds a thresh, clearly")
+        smoothing_layer_tip = (
+            "[Pre-processing]: Smooth your image without losing sharp edges. \n"
+            "You may not need this step if (1) your image has little noise \n"
+            "and (2) the segmentation results are accurate enough. \n \n"
+            "Parameters: \n"
+            "\tNo parameter is needed \n \n"
+            "Instruction: \n"
+            "\tSelect the image to apply on and click Run"
+        )
+        self.l_1.setToolTip(smoothing_layer_tip)
+        core_thresh_tip = (
+            "[core segmentation step 1]: Extract the vessels with very high intensity. \n"
+            "The threshold is set as intensity_mean + 'scale' x intensity_standard_deviation \n \n"
+            "Parameters: \n"
+            "\tscale: large value will result in higher threshold \n \n"
+            "Instruction: \n"
+            "\tSelect the image (usually the smoothed image) to apply on, select the scale and click Run"
+        )
+        self.l_2.setToolTip(core_thresh_tip)
+        core_vessel_tip = (
+            "[core segmentation step 2]: Use vesselness filter to extract filamentous objects. \n"
+            "A Frangi filter will be applied first and then a cutoff value will be calculated \n"
+            "to binarize the result. \n\n"
+            "** Note**: You can combine the reulsts of two different vesselness filter in the merge step\n"
+            "For example, you can use one filter to catch thinner vessels and use another filter to pick up \n"
+            "thicker vessels. \n\n"
+            "Parameters: \n"
+            "\tsigma: the kernel size of the Frangi filter. Use large sigma for thicker vessels \n"
+            "\toperation_dim: The filter can be applied either in 3D or in 2D as a slice-by-slice manner \n"
+            "\tcutoff-method: The method used to determine how to binarize the filter result as segmentation \n\n"
+            "Instruction: \n"
+            "\tSelect the image (usually the smoothed image) to apply on, select parameters and click Run"
+        )
         self.l_3.setToolTip("PLACEHOLDER: The core must be a lord, as he has a va(e)ssel")
         self.l_4.setToolTip("PLACEHOLDER: Choose one, merge or segment?")
         self.l_5.setToolTip("PLACEHOLDER: Sorry, we're closed")
         self.l_6.setToolTip("PLACEHOLDER: The post has gained weight, has he?")
         self.l_7.setToolTip("PLACEHOLDER: Make everything nice and tidy!")
-        self.l_scale.setToolTip("PLACEHOLDER: Go big, or go home!")
+        
+        core_thresh_scale_tip = (
+            "larger value will result in higher threshold value, \n"
+            "and therefore less pixels will be segmented."
+        )
+        self.l_scale.setToolTip(core_thresh_scale_tip)
         self.l_sigma.setToolTip("PLACEHOLDER: New variant?")
         self.l_operation_dim.setToolTip("PLACEHOLDER: 4D when?")
         self.l_cutoff_method.setToolTip("PLACEHOLDER: I would prefer nothing cut off, please")
