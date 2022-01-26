@@ -1,4 +1,4 @@
-"""import numpy as np
+import numpy as np
 from vessel_express import napari_get_reader
 
 
@@ -6,6 +6,10 @@ from vessel_express import napari_get_reader
 def test_reader(tmp_path):
     # An example of how you might test your plugin.
 
+    # We will pass for now as we are not using the reader in our plugin
+    pass
+
+    """
     # write some fake data using your supported file format
     my_test_file = str(tmp_path / "myfile.npy")
     original_data = np.random.rand(20, 20)
@@ -23,9 +27,9 @@ def test_reader(tmp_path):
 
     # make sure it's the same as it started
     np.testing.assert_allclose(original_data, layer_data_tuple[0])
+    """
 
 
 def test_get_reader_pass():
     reader = napari_get_reader("fake.file")
     assert reader is None
-"""
