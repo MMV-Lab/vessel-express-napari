@@ -1,10 +1,10 @@
-import numpy as np
+"""import numpy as np
 from vessel_express import napari_get_reader
 
 
 # tmp_path is a pytest fixture
 def test_reader(tmp_path):
-    """An example of how you might test your plugin."""
+    # An example of how you might test your plugin.
 
     # write some fake data using your supported file format
     my_test_file = str(tmp_path / "myfile.npy")
@@ -28,3 +28,4 @@ def test_reader(tmp_path):
 def test_get_reader_pass():
     reader = napari_get_reader("fake.file")
     assert reader is None
+"""
