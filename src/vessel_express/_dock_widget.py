@@ -19,6 +19,7 @@ class VesselExpress(QWidget):
         self.viewer = napari_viewer
 
         # Labels
+        self.l_title = QLabel("<font color='green'>VesselExpress Segmentation Parameter Tuning:</font>")
         self.l_1 = QLabel("smoothing:")
         self.l_2 = QLabel("core-threshold:")
         self.l_3 = QLabel("core-vesselness:")
@@ -243,7 +244,7 @@ class VesselExpress(QWidget):
             self.c_merge_2,self.c_merge_3,self.c_closing,self.c_thinning,self.c_cleaning]
 
         # Add content to layer selecting comboboxes
-        self.c_merge_3.addItem("N/A")
+        self._update_layer_lists()
         self.viewer.layers.events.inserted.connect(self._update_layer_lists)
         self.viewer.layers.events.removed.connect(self._update_layer_lists)
         self.viewer.layers.events.reordered.connect(self._update_layer_lists)
@@ -382,6 +383,7 @@ class VesselExpress(QWidget):
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
+        self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.zone_1)
         self.content.layout().addWidget(self.line_1)
         self.content.layout().addWidget(self.zone_2)
@@ -483,7 +485,7 @@ class VesselExpress(QWidget):
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
                 break
-        dim = (2,3)[self.c_operation_dim == "2D"]
+        dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
         print(f"running {dim}D vesselness filter ...")
         sigma = self.s_sigma.value()/2
         cutoff_method = self.c_cutoff_method.currentText()
