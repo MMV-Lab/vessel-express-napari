@@ -41,13 +41,13 @@ class VesselExpress(QWidget):
 
         # Set tooltips
         smoothing_layer_tip = (
-            "[Pre-processing]: Smooth your image without losing sharp edges. \n"
-            "You may not need this step if (1) your image has little noise \n"
-            "and (2) the segmentation results are accurate enough. \n \n"
+            "[Pre-processing]: Smooth your image without losing sharp edges. <br>\n"
+            "You may not need this step if (1) your image has little noise <br>\n"
+            "and (2) the segmentation results are accurate enough. <br><br>\n \n"
             "Parameters: \n"
-            "\tNo parameter is needed \n \n"
+            "\t<p style='margin-left: 40px'>No parameter is needed </p>\n \n"
             "Instruction: \n"
-            "\tSelect the image to apply on and click Run"
+            "\t<p style='margin-left: 40px'>Select the image to apply on and click Run</p>"
         )
         self.l_1.setToolTip(smoothing_layer_tip)
         core_thresh_tip = (
@@ -135,26 +135,32 @@ class VesselExpress(QWidget):
         self.s_scale.setRange(0,50)
         self.s_scale.setValue(0)
         self.s_scale.setOrientation(Qt.Horizontal)
+        self.s_scale.setPageStep(4)
         self.s_sigma = QSlider()    # DOUBLED TO MAKE INT WORK
         self.s_sigma.setRange(1,20)
         self.s_sigma.setValue(1)
         self.s_sigma.setOrientation(Qt.Horizontal)
+        self.s_sigma.setPageStep(2)
         self.s_kernel_size = QSlider()
         self.s_kernel_size.setRange(0,10)
         self.s_kernel_size.setValue(0)
         self.s_kernel_size.setOrientation(Qt.Horizontal)
+        self.s_kernel_size.setPageStep(2)
         self.s_min_thick = QSlider()    # DOUBLED TO MAKE INT WORK
         self.s_min_thick.setRange(2,10)
         self.s_min_thick.setValue(2)
         self.s_min_thick.setOrientation(Qt.Horizontal)
+        self.s_min_thick.setPageStep(2)
         self.s_thin = QSlider()
         self.s_thin.setRange(1,5)
         self.s_thin.setValue(1)
         self.s_thin.setOrientation(Qt.Horizontal)
+        self.s_thin.setPageStep(2)
         self.s_min_size = QSlider()
         self.s_min_size.setRange(1,200)
         self.s_min_size.setValue(1)
         self.s_min_size.setOrientation(Qt.Horizontal)
+        self.s_min_size.setPageStep(10)
 
         # Numeric Labels
         self.n_scale = QLabel()
