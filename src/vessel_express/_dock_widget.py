@@ -41,17 +41,18 @@ class VesselExpress(QWidget):
 
         # Set tooltips
         smoothing_layer_tip = (
-            "[Pre-processing]: Smooth your image without losing sharp edges.<br>\n"
-            "You may not need this step if (1) your image has little noise<br>\n"
+            "Goal of this step: Smooth your image without losing sharp edges.<br><br>\n\n"
+            "You may not need this step if (1) your image has little noise "
             "and (2) the segmentation results are accurate enough.<br><br>\n \n"
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>No parameters are needed.</p>\n \n"
             "Instruction: \n"
-            "\t<p style='margin-left: 40px'>Select the image to apply the smoothing on and click \"Run\".</p>"
+            "\t<p style='margin-left: 40px'>Select the image to smooth and click \"Run\".</p>"
         )
         self.l_1.setToolTip(smoothing_layer_tip)
         core_thresh_tip = (
-            "[Core segmentation step 1]: Extract the vessels with very high intensity. <br>\n"
+            "Goal of this step: Extract the vessels with very high intensity. Don't worry about the vessels "
+            "with mid/low intensities, which will be detected by the next step <br><br>\n\n"
             "The threshold is set as intensity_mean + 'scale' x intensity_standard_deviation. <br><br>\n \n"
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>scale: A large value will result in a higher threshold. </p>\n \n"
@@ -60,12 +61,13 @@ class VesselExpress(QWidget):
         )
         self.l_2.setToolTip(core_thresh_tip)
         core_vessel_tip = (
-            "[Core segmentation step 2]: Use vesselness filter to extract filamentous objects.<br>\n"
-            "A Frangi filter will be applied first and then a cutoff value will be calculated<br>\n"
+            "Goal of this step: Detect filamentous objects of different thickness with vesselness filter. You can use this filter 1 or 2 times. "
+            "Then you can combine the results of two different vesselness filters in the merge step.  For example, you can use one filter to "
+            "catch thinner vessels and use another filter to pick up thicker vessels.<br><br>\n\n"
+ 
+            "A Frangi filter will be applied first and then a cutoff value will be calculated"
             "to binarize the result.<br><br>\n\n"
-            "<b>** Note**:</b> You can combine the results of two different vesselness filters in the merge step.<br>\n"
-            "For example, you can use one filter to catch thinner vessels and use another filter to pick up<br>\n"
-            "thicker vessels.<br><br>\n\n"
+
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>sigma: The kernel size of the Frangi filter. Use a large sigma for thicker vessels.<br>\n"
             "\toperation_dim: Select weather to apply the filter in 3D or in 2D in a slice-by-slice manner.<br>\n"
@@ -75,9 +77,10 @@ class VesselExpress(QWidget):
         )
         self.l_3.setToolTip(core_vessel_tip)
         core_merge_tip = (
-            "[Merging]: In most cases none of the above segmentation will work perfectly as a single filter.<br>\n"
-            "We find that combining the thresholding result and up to two different vesselness filters can<br>\n"
-            "yield good results for your applications.<br><br>\n \n"
+            "Goal of this step: Merge different segmentation results (thresholding results and up to two vesselness filter results)  "
+            "to obtain the final segmenation.<br><br>\n \n"
+            "In most cases none of the above indiviudal segmentation step will work perfectly as a single filter.<br>\n"
+            "Each step can be responsible for segmenting different parts of the vessels and combining them may yield good results for your application.<br><br>\n \n"
             "Instruction: \n"
             "\t<p style='margin-left: 40px'>Select which version of the thresholding based method to use and select<br>\n"
             "\tup to two vesselness segmentation restuls, then click \"Run\" to see how the<br>\n"
@@ -85,8 +88,7 @@ class VesselExpress(QWidget):
         )
         self.l_4.setToolTip(core_merge_tip)
         post_clost_tip = (
-            "[Post-processing 1]: The vesselness filter may have broken segmentation near junction areas.<br>\n"
-            "You can use the closing step to bridge such gaps.<br><br>\n \n"
+            "Goal of this step: The vesselness filter may have broken segmentation near junction areas. You can use this closing step to bridge such gaps.<br><br>\n \n"
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>kernel_size: A large value will close larger gaps, but may falsely merge proximal vessels.</p>\n\n"
             "Instruction: \n"
@@ -95,8 +97,8 @@ class VesselExpress(QWidget):
         )
         self.l_5.setToolTip(post_clost_tip)
         post_thin_tip = (
-            "[Post-processing 2]: The segmentation result may look thicker than it should be due to<br>\n"
-            "the diffraction of light. You can perform a thinning step without altering the topology.<br><br>\n\n"
+            "Goal of this step: Thin the segmentation results.<br><br>\n\n"
+            "The segmentation result may look thicker than it should be due to the diffraction of light. When necessary, this thinning step can make them thinner without breaking the connectivity.<br><br>\n\n"
             "Parameters: \n"
             "<p style='margin-left: 40px'>\tmin_thickness: Any vessel thinner than this value will <b>not</b> be further thinned.<br>\n"
             "\tthin: How many pixels to thin your segmentations by.</p>"
