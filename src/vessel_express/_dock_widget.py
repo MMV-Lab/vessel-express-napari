@@ -45,90 +45,90 @@ class VesselExpress(QWidget):
             "You may not need this step if (1) your image has little noise<br>\n"
             "and (2) the segmentation results are accurate enough.<br><br>\n \n"
             "Parameters: \n"
-            "\t<p style='margin-left: 40px'>No parameter is needed</p>\n \n"
+            "\t<p style='margin-left: 40px'>No parameters are needed.</p>\n \n"
             "Instruction: \n"
-            "\t<p style='margin-left: 40px'>Select the image to apply on and click Run</p>"
+            "\t<p style='margin-left: 40px'>Select the image to apply the smoothing on and click \"Run\".</p>"
         )
         self.l_1.setToolTip(smoothing_layer_tip)
         core_thresh_tip = (
-            "[core segmentation step 1]: Extract the vessels with very high intensity. <br>\n"
-            "The threshold is set as intensity_mean + 'scale' x intensity_standard_deviation <br><br>\n \n"
+            "[Core segmentation step 1]: Extract the vessels with very high intensity. <br>\n"
+            "The threshold is set as intensity_mean + 'scale' x intensity_standard_deviation. <br><br>\n \n"
             "Parameters: \n"
-            "\t<p style='margin-left: 40px'>scale: large value will result in higher threshold </p>\n \n"
+            "\t<p style='margin-left: 40px'>scale: A large value will result in a higher threshold. </p>\n \n"
             "Instruction: \n"
-            "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select the scale and click Run</p>"
+            "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select the scale and click \"Run\".</p>"
         )
         self.l_2.setToolTip(core_thresh_tip)
         core_vessel_tip = (
-            "[core segmentation step 2]: Use vesselness filter to extract filamentous objects.<br>\n"
+            "[Core segmentation step 2]: Use vesselness filter to extract filamentous objects.<br>\n"
             "A Frangi filter will be applied first and then a cutoff value will be calculated<br>\n"
             "to binarize the result.<br><br>\n\n"
-            "<b>** Note**:</b> You can combine the reulsts of two different vesselness filter in the merge step<br>\n"
+            "<b>** Note**:</b> You can combine the results of two different vesselness filters in the merge step.<br>\n"
             "For example, you can use one filter to catch thinner vessels and use another filter to pick up<br>\n"
             "thicker vessels.<br><br>\n\n"
             "Parameters: \n"
-            "\t<p style='margin-left: 40px'>sigma: the kernel size of the Frangi filter. Use large sigma for thicker vessels<br>\n"
-            "\toperation_dim: The filter can be applied either in 3D or in 2D as a slice-by-slice manner<br>\n"
-            "\tcutoff-method: The method used to determine how to binarize the filter result as segmentation</p>\n\n"
+            "\t<p style='margin-left: 40px'>sigma: The kernel size of the Frangi filter. Use a large sigma for thicker vessels.<br>\n"
+            "\toperation_dim: Select weather to apply the filter in 3D or in 2D in a slice-by-slice manner.<br>\n"
+            "\tcutoff-method: The method used to determine how to binarize the filter result as segmentation.</p>\n\n"
             "Instruction: \n"
-            "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select parameters and click Run</p>"
+            "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select parameters and click \"Run\".</p>"
         )
         self.l_3.setToolTip(core_vessel_tip)
         core_merge_tip = (
-            "In most of the case, none of the segmentation above will work perfectly as a single filter<br>\n"
+            "[Merging]: In most cases none of the above segmentation will work perfectly as a single filter.<br>\n"
             "We find that combining the thresholding result and up to two different vesselness filters can<br>\n"
             "yield good results for your applications.<br><br>\n \n"
             "Instruction: \n"
-            "\t<p style='margin-left: 40px'>Select which version of the thresholding based method to use, and select<br>\n"
-            "\tup to two vesselness segmentation restuls, and click Run to see how the<br>\n"
-            "\tresult looks after merging them</p>"
+            "\t<p style='margin-left: 40px'>Select which version of the thresholding based method to use and select<br>\n"
+            "\tup to two vesselness segmentation restuls, then click \"Run\" to see how the<br>\n"
+            "\tresult looks after merging them.</p>"
         )
         self.l_4.setToolTip(core_merge_tip)
         post_clost_tip = (
-            "[Post-processing 1:] The vesselness filter may have broken segmentation near junction areas.<br>\n"
+            "[Post-processing 1]: The vesselness filter may have broken segmentation near junction areas.<br>\n"
             "You can use the closing step to bridge such gaps.<br><br>\n \n"
             "Parameters: \n"
-            "\t<p style='margin-left: 40px'>kernel_size: large value will close larger gaps, but may falsely merge proximal vessels</p>\n\n"
+            "\t<p style='margin-left: 40px'>kernel_size: A large value will close larger gaps, but may falsely merge proximal vessels.</p>\n\n"
             "Instruction: \n"
             "\t<p style='margin-left: 40px'>Select the segmentation result (usually after merging) to apply on,<br>\n"
-            "\tselect the kernel_size and click Run</p>"
+            "\tselect the kernel_size and click \"Run\".</p>"
         )
         self.l_5.setToolTip(post_clost_tip)
         post_thin_tip = (
-            "[Post-processing 2:] The segmentation result may look thicker than it should be due to<br>\n"
-            "the diffraction of light. You can perform a thinning step without altering the topoloy<br><br>\n\n"
+            "[Post-processing 2]: The segmentation result may look thicker than it should be due to<br>\n"
+            "the diffraction of light. You can perform a thinning step without altering the topology.<br><br>\n\n"
             "Parameters: \n"
-            "<p style='margin-left: 40px'>\tmin_thickness: any vessel thinner than this value will NOT be further thinned<br>\n"
-            "\tthin: how many pixels to thin your segmentations</p>"
+            "<p style='margin-left: 40px'>\tmin_thickness: Any vessel thinner than this value will <b>not</b> be further thinned.<br>\n"
+            "\tthin: How many pixels to thin your segmentations by.</p>"
         )
         self.l_6.setToolTip(post_thin_tip)
-        self.l_7.setToolTip("any segmented objects smaller than min_size will be removed to clean up your result")
+        self.l_7.setToolTip("Any segmented objects smaller than min_size will be removed to clean up your result.")
         
         core_thresh_scale_tip = (
-            "larger value will result in higher threshold value,\n"
+            "Larger value will result in higher threshold value,\n"
             "and therefore less pixels will be segmented."
         )
         self.l_scale.setToolTip(core_thresh_scale_tip)
         core_vessel_sigma_tip = (
-            "larger value will help you pick up thicker vessels"
+            "Larger value will help you pick up thicker vessels."
         )
         self.l_sigma.setToolTip(core_vessel_sigma_tip)
         core_vessel_dim_tip = (
-            "choose 3D (apply 3D filter) or 2D (apply 2D filter slice by slice)"
+            "Choose 3D (apply 3D filter) or 2D (apply 2D filter slice by slice)."
         )
         self.l_operation_dim.setToolTip(core_vessel_dim_tip)
         core_vessel_cutoff_tip = (
-            "choose between different thresholding method to binarize\n"
-            "the filter output into segmentation result"
+            "Choose between different thresholding method to binarize\n"
+            "the filter output into segmentation result."
         )
         self.l_cutoff_method.setToolTip(core_vessel_cutoff_tip)
-        self.l_threshold_result.setToolTip("layer of the thresholding based segmentation")
-        self.l_vesselness_1.setToolTip("layer of the primary vesselness segmentation")
-        self.l_vesselness_2.setToolTip("layer of the secondary vesselness segmentation")
-        self.l_kernel_size.setToolTip("large value will close larger gaps, but may falsely merge proximal vessels")
-        self.l_min_thick.setToolTip("any vessel thinner than this value will NOT be further thinned")
-        self.l_thin.setToolTip("how many pixels to thin your vessels")
-        self.l_min_size.setToolTip("The minimum size of segmented objecets to keep")
+        self.l_threshold_result.setToolTip("Layer of the thresholding based segmentation.")
+        self.l_vesselness_1.setToolTip("Layer of the primary vesselness segmentation.")
+        self.l_vesselness_2.setToolTip("Layer of the secondary vesselness segmentation.")
+        self.l_kernel_size.setToolTip("Large value will close larger gaps, but may falsely merge proximal vessels.")
+        self.l_min_thick.setToolTip("Any vessel thinner than this value will <b>not</b> be further thinned.")
+        self.l_thin.setToolTip("How many pixels to thin your vessels by.")
+        self.l_min_size.setToolTip("The minimum size of segmented objects to keep.")
 
         # Sliders
         self.s_scale = QSlider()    # DOUBLED TO MAKE INT WORK
