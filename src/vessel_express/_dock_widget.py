@@ -187,6 +187,7 @@ class VesselExpress(QWidget):
         self.s_min_size.valueChanged.connect(self._update_min_size)
 
         # Buttons
+        self.btn_preset = QPushButton("Run Preset")
         self.btn_smoothing = QPushButton("Run")
         self.btn_threshold = QPushButton("Run")
         self.btn_vesselness = QPushButton("Run")
@@ -196,6 +197,7 @@ class VesselExpress(QWidget):
         self.btn_cleaning = QPushButton("Run")
 
         # Add functions to buttons
+        self.btn_preset.clicked.connect(self._run_preset)
         self.btn_smoothing.clicked.connect(self._smoothing)
         self.btn_threshold.clicked.connect(self._threshold)
         self.btn_vesselness.clicked.connect(self._vesselness)
@@ -206,7 +208,7 @@ class VesselExpress(QWidget):
 
         # Horizontal lines
         self.line_1 = QWidget()
-        self.line_1.setFixedHeight(2)
+        self.line_1.setFixedHeight(4)
         self.line_1.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_1.setStyleSheet("background-color: #c0c0c0")
         self.line_2 = QWidget()
@@ -214,23 +216,33 @@ class VesselExpress(QWidget):
         self.line_2.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_2.setStyleSheet("background-color: #c0c0c0")
         self.line_3 = QWidget()
-        self.line_3.setFixedHeight(2)
+        self.line_3.setFixedHeight(4)
         self.line_3.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_3.setStyleSheet("background-color: #c0c0c0")
         self.line_4 = QWidget()
-        self.line_4.setFixedHeight(2)
+        self.line_4.setFixedHeight(4)
         self.line_4.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_4.setStyleSheet("background-color: #c0c0c0")
         self.line_5 = QWidget()
-        self.line_5.setFixedHeight(2)
+        self.line_5.setFixedHeight(4)
         self.line_5.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_5.setStyleSheet("background-color: #c0c0c0")
         self.line_6 = QWidget()
-        self.line_6.setFixedHeight(2)
+        self.line_6.setFixedHeight(4)
         self.line_6.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_6.setStyleSheet("background-color: #c0c0c0")
 
         # Combo boxes
+        self.c_preset = QComboBox()
+        self.c_preset.addItem("Bladder")
+        self.c_preset.addItem("Brain")
+        self.c_preset.addItem("Ear")
+        self.c_preset.addItem("Heart")
+        self.c_preset.addItem("Liver")
+        self.c_preset.addItem("Muscle")
+        self.c_preset.addItem("Spinal Cord")
+        self.c_preset.addItem("Tongue")
+        self.c_preset_input = QComboBox()
         self.c_smoothing = QComboBox()
         self.c_threshold = QComboBox()
         self.c_vesselness = QComboBox()
@@ -248,8 +260,8 @@ class VesselExpress(QWidget):
         self.c_closing = QComboBox()
         self.c_thinning = QComboBox()
         self.c_cleaning = QComboBox()
-        self.list_comboboxes = [self.c_smoothing,self.c_threshold,self.c_vesselness,self.c_merge_1,
-            self.c_merge_2,self.c_merge_3,self.c_closing,self.c_thinning,self.c_cleaning]
+        self.list_comboboxes = [self.c_preset_input,self.c_smoothing,self.c_threshold,self.c_vesselness,
+        self.c_merge_1,self.c_merge_2,self.c_merge_3,self.c_closing,self.c_thinning,self.c_cleaning]
 
         # Add content to layer selecting comboboxes
         self._update_layer_lists()
@@ -391,6 +403,9 @@ class VesselExpress(QWidget):
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
+        self.content.layout().addWidget(self.c_preset_input)
+        self.content.layout().addWidget(self.c_preset)
+        self.content.layout().addWidget(self.btn_preset)
         self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.zone_1)
         self.content.layout().addWidget(self.line_1)
@@ -432,20 +447,23 @@ class VesselExpress(QWidget):
         self.n_min_size.setText(str(self.s_min_size.value()))
 
     # Button onclick functions
-    def _smoothing(self):
+    def _smoothing(self, preset = False, data = ""):
         """
         perform edge preserving smoothing
         """
 
-        selected_layer = self.c_smoothing.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                data = layer.data
-                break
+        if not preset:
+            selected_layer = self.c_smoothing.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    data = layer.data
+                    break
         out = edge_preserving_smoothing_3d(data)
         self.viewer.add_image(data = out, name = "smoothed_Image")
+        if preset:
+            return out
 
-    def _threshold(self):   # HALVE VALUE
+    def _threshold(self, preset = False, image = "", scale = 0):   # HALVE VALUE
         """
         apply vesselness filter on images
         Parameters:
@@ -460,17 +478,20 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_smoothing.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                image = layer.data
-                break
-        scale = self.s_scale.value()/2
+        if not preset:
+            selected_layer = self.c_smoothing.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            scale = self.s_scale.value()/2
         thresh = image.mean() + scale * image.std()
         out = image > thresh
         self.viewer.add_image(data = out, name = f"threshold_{scale}", blending="additive")
+        if preset:
+            return out
 
-    def _vesselness(self):  # HALVE VALUE
+    def _vesselness(self, preset = False, image = "", sigma = 0, dim = 0, cutoff_method = ""):  # HALVE VALUE
         """
         apply vesselness filter on images
         Parameters:
@@ -488,40 +509,51 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_smoothing.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                image = layer.data
-                break
-        dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
+        if not preset:
+            selected_layer = self.c_smoothing.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
+            sigma = self.s_sigma.value()/2
+            cutoff_method = self.c_cutoff_method.currentText()
         print(f"running {dim}D vesselness filter ...")
-        sigma = self.s_sigma.value()/2
-        cutoff_method = self.c_cutoff_method.currentText()
         out = vesselness_filter(image, dim, sigma, cutoff_method)
         print("vesselness filter is done")
         self.viewer.add_image(data = out, name = f"ves_{dim}D_{sigma}_{cutoff_method}", blending="additive")
+        if preset:
+            return out
 
-    def _merge(self):
-        layer_list = [
-            self.c_merge_1.currentText(),
-            self.c_merge_2.currentText(),
-            self.c_merge_3.currentText()
-        ]
-        counter = 0
-        for layer in self.viewer.layers:
-            if layer.name in layer_list and type(layer) == Image:
-                image = layer.data
-                if counter == 0:
-                    seg = image > 0
-                else:
-                    seg = logical_or(seg, image > 0)
-                counter += 1
-                if counter == 3:
-                    break
+    def _merge(self, preset = False, layers = 0, data1 = "", data2 = "", data3 = ""):
+        if not preset:
+            layer_list = [
+                self.c_merge_1.currentText(),
+                self.c_merge_2.currentText(),
+                self.c_merge_3.currentText()
+            ]
+            counter = 0
+            for layer in self.viewer.layers:
+                if layer.name in layer_list and type(layer) == Image:
+                    image = layer.data
+                    if counter == 0:
+                        seg = image > 0
+                    else:
+                        seg = logical_or(seg, image > 0)
+                    counter += 1
+                    if counter == 3:
+                        break
+        else:
+            seg = data1 > 0
+            seg = logical_or(seg, data2 > 0)
+            if layers == 3:
+                seg = logical_or(seg, data3 > 0)
         self.viewer.add_image(data = seg, name = "merged_segmentation", blending="additive")
+        if preset:
+            return seg
         
 
-    def _closing(self):
+    def _closing(self, preset = False, image = "", kernel = 0):
         """
         perform morphological closing to remove small gaps in segmentation
         Parameters:
@@ -535,16 +567,19 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_closing.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                image = layer.data
-                break
-        scale = self.s_kernel_size.value()
-        out = binary_closing(image, cube(scale))
+        if not preset:
+            selected_layer = self.c_closing.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            kernel = self.s_kernel_size.value()
+        out = binary_closing(image, cube(kernel))
         self.viewer.add_image(data = out, name = "closed_segmentation", blending="additive")
+        if preset:
+            return out
 
-    def _thinning(self):    # HALVE ONE VALUE
+    def _thinning(self, preset = False, image ="", min_thickness = 0, thin = 0):    # HALVE ONE VALUE
         """
         perform topology preserving thinning
         Parameters:
@@ -560,17 +595,20 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_thinning.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                image = layer.data
-                break
-        min_thickness = self.s_min_thick.value()/2
-        thin = self.s_thin.value()/2
+        if not preset:
+            selected_layer = self.c_thinning.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            min_thickness = self.s_min_thick.value()/2
+            thin = self.s_thin.value()/2
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
         self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
+        if preset:
+            return out
 
-    def _cleaning(self):
+    def _cleaning(self, preset = False, image = "", min_size = 0):
         """
         clean up small objects from the segmentation result
         Parameters:
@@ -584,12 +622,13 @@ class VesselExpress(QWidget):
         np.ndarray
         """
 
-        selected_layer = self.c_cleaning.currentText()
-        for layer in self.viewer.layers:
-            if layer.name == selected_layer and type(layer) == Image:
-                image = layer.data
-                break
-        min_size = self.s_min_size.value()/2
+        if not preset:
+            selected_layer = self.c_cleaning.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            min_size = self.s_min_size.value()/2
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = "cleaned_segmentation", blending="additive")
 
@@ -606,6 +645,89 @@ class VesselExpress(QWidget):
         for box in self.list_comboboxes:
             for name in names:
                 box.addItem(name)
+
+    # Preset function
+    def _run_preset(self):
+        """
+        runs the selected preset on the selected layer without interaction from the user necessary
+        """
+
+        selected_layer = self.c_cleaning.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+
+        if self.c_preset.currentIndex() == 0: # Bladder preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 3, dim = 3, cutoff_method = "threshold_otsu")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 5)
+            thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 1: # Brain preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 5)
+            self._cleaning(preset = True, image = closed, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 2: # Ear preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            self._cleaning(preset = True, image = merge, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 3: # Heart preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_otsu")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            thinned = self._thinning(preset = True, image = merge, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 4: # Liver preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 2, cutoff_method = "threshold_otsu")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 5)
+            self._cleaning(preset = True, image = closed, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 5: # Muscle preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
+            self._cleaning(preset = True, image = merge, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 6: # Spinal cord preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_triangle")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 3)
+            thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 7: # Tongue preset
+            image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            thinned = self._thinning(preset = True, image = merge, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 100)
 
     """
     # This can be interesting if we decide to use the currently selected layers instead of comboboxes
