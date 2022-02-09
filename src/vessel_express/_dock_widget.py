@@ -19,6 +19,8 @@ class VesselExpress(QWidget):
         self.viewer = napari_viewer
 
         # Labels
+        self.l_preset_layer = QLabel("Select Layer")
+        self.l_preset_name = QLabel("Select Configuration")
         self.l_title = QLabel("<font color='green'>VesselExpress Segmentation Parameter Tuning:</font>")
         self.l_1 = QLabel("smoothing:")
         self.l_2 = QLabel("core-threshold:")
@@ -270,6 +272,22 @@ class VesselExpress(QWidget):
         self.viewer.layers.events.reordered.connect(self._update_layer_lists)
         self.viewer.layers.events.changed.connect(self._update_layer_lists)
 
+        # Zone 0 (Preset Zone)
+
+        self.h_0_1 = QWidget()
+        self.h_0_1.setLayout(QHBoxLayout())
+        self.h_0_1.layout().addWidget(self.l_preset_layer)
+        self.h_0_1.layout().addWidget(self.c_preset_input)
+        self.h_0_2 = QWidget()
+        self.h_0_2.setLayout(QHBoxLayout())
+        self.h_0_2.layout().addWidget(self.l_preset_name)
+        self.h_0_2.layout().addWidget(self.c_preset)
+        self.zone_0 = QWidget()
+        self.zone_0.setLayout(QVBoxLayout())
+        self.zone_0.layout().addWidget(self.h_0_1)
+        self.zone_0.layout().addWidget(self.h_0_2)
+        self.zone_0.layout().addWidget(self.btn_preset)
+
         # Zone 1
         self.h_1 = QWidget()
         self.h_1.setLayout(QHBoxLayout())
@@ -403,9 +421,7 @@ class VesselExpress(QWidget):
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
-        self.content.layout().addWidget(self.c_preset_input)
-        self.content.layout().addWidget(self.c_preset)
-        self.content.layout().addWidget(self.btn_preset)
+        self.content.layout().addWidget(self.zone_0)
         self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.zone_1)
         self.content.layout().addWidget(self.line_1)
