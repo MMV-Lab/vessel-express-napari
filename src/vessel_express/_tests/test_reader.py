@@ -7,7 +7,7 @@ def test_reader(tmp_path):
     # An example of how you might test your plugin.
 
     # We will pass for now as we are not using the reader in our plugin
-    pass
+    assert True
 
     """
     # write some fake data using your supported file format

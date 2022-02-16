@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy
 import napari
 from napari_plugin_engine import napari_hook_implementation
-from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea
+from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox
 from qtpy.QtCore import Qt
 from napari.layers import Image
+from tifffile import imread
 
 # packages required by processing functions
 from .utils import vesselness_filter
@@ -759,8 +760,99 @@ class VesselExpress(QWidget):
         # TODO: Implement error if less layers exist than requested
         pass
     """
+class Evaluation(QWidget):
+    def __init__(self, napari_viewer):
+        super().__init__()
+        self.viewer = napari_viewer
+
+        self.l_title = QLabel("<font color='green'>evaluate-segmentation:</font>")
+        self.l_evaluate = QLabel("Please evaluate the segmentation!")
+        self.l_directory = QLabel()
+
+
+        self.btn_next = QPushButton("Next image")
+        self.btn_save = QPushButton("Save")
+        self.btn_dir = QPushButton("Choose a directory")
+        self.btn_next.clicked.connect(self._next)
+        self.btn_save.clicked.connect(self._save)
+        self.btn_dir.clicked.connect(self._select_dir)
+
+        
+        self.c_eval = QComboBox()
+        self.c_eval.addItem("No evaluation")
+        self.c_eval.addItem("Good")
+        self.c_eval.addItem("Bad")
+        
+        # Layouting
+        self.content = QWidget()
+        self.content.setLayout(QVBoxLayout())
+        self.content.layout().addWidget(self.l_title)
+        self.content.layout().addWidget(self.btn_dir)
+        self.content.layout().addWidget(self.l_directory)
+        self.content.layout().addWidget(self.btn_next)
+        self.content.layout().addWidget(self.l_evaluate)
+        self.content.layout().addWidget(self.c_eval)
+        self.content.layout().addWidget(self.btn_save)
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.content)
+
+        # Setting layout
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.scroll_area)
+
+        self.evaluated = []
+
+    def _select_dir(self):
+        self.directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        self.current = 0
+        self._next()
+        self.l_directory.setText(self.directory)
+
+    def _next(self): # Removes all current layers and loads in two corresponding images as layers
+        try: # more files might not exist
+            next = self._get_next()
+        except:
+            noMoreFiles = QMessageBox()
+            noMoreFiles.setText("There are no more file tuples to evaluate!")
+            noMoreFiles.exec()
+            return
+        original = next[0]
+        segmentation = next[1]
+        if self.current > 0:
+            self._eval()
+        self._remove_layers()
+        self.current = self.current + 1
+        self.viewer.add_image(data = original, name = "Original data")
+        self.viewer.add_image(data = segmentation, name = "Segmentation data", blending = "additive")
+
+    def _get_next(self):
+        original = imread(files = self.directory + "/Raw_liver_" + str(self.current+1) + ".tiff")
+        segmentation = imread(files = self.directory + "/Binary_liver_" + str(self.current+1) + ".tiff")
+        return [original,segmentation]
+    
+    def _eval(self):
+        self.evaluated.append("liver_" + str(self.current) + ".tiff: " + self.c_eval.currentText() + "\n")
+
+    def _save(self):
+        if self.current > 0:
+            self._eval()
+        filename = QFileDialog.getSaveFileName(self, caption = "test", directory  = self.directory, filter = "*.csv")
+        outfile = open(filename[0],"a")
+        for i in range(0,len(self.evaluated)):
+            outfile.write(self.evaluated[i])
+        outfile.close()
+        msgBox = QMessageBox()
+        msgBox.setText("The file has been saved.")
+        msgBox.exec()
+
+    def _remove_layers(self):
+        rm = []
+        for layer in self.viewer.layers: # Split into two loops because one loop ignors some layers
+            rm.append(layer.name)
+        for layer in rm:
+            self.viewer.layers.remove(layer)
         
 
 @napari_hook_implementation
 def napari_experimental_provide_dock_widget():
-    return [VesselExpress]
+    return [VesselExpress, Evaluation]
