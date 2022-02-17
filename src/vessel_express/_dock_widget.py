@@ -14,7 +14,7 @@ from skimage.morphology import remove_small_objects, binary_closing, cube
 from aicssegmentation.core.utils import topology_preserving_thinning
 
 
-class VesselExpress(QWidget):
+class ParameterTuning(QWidget):
     def __init__(self, napari_viewer):
         super().__init__()
         self.viewer = napari_viewer
@@ -855,4 +855,4 @@ class Evaluation(QWidget):
 
 @napari_hook_implementation
 def napari_experimental_provide_dock_widget():
-    return [VesselExpress, Evaluation]
+    return [ParameterTuning, Evaluation]
