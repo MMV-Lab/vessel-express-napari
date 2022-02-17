@@ -1,5 +1,5 @@
 
-from vessel_express import VesselExpress
+from vessel_express import ParameterTuning
 import numpy as np
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -7,7 +7,7 @@ import numpy as np
 def test_example_q_widget(make_napari_viewer, capsys):
 
     # we pass for now, proper tests will be implemented later
-    pass
+    assert True
 
     """
     # make viewer and add an image layer using our fixture
