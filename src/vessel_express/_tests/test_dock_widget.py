@@ -7,7 +7,7 @@ import numpy as np
 def test_example_q_widget(make_napari_viewer, capsys):
 
     # we pass for now, proper tests will be implemented later
-    assert True
+    pass
 
     """
     # make viewer and add an image layer using our fixture
