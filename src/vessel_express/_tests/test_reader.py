@@ -7,7 +7,7 @@ def test_reader(tmp_path):
     # An example of how you might test your plugin.
 
     # We will pass for now as we are not using the reader in our plugin
-    pass
+    assert True
 
     """
     # write some fake data using your supported file format
@@ -31,7 +31,7 @@ def test_reader(tmp_path):
 
 
 def test_get_reader_pass():
-    pass
+    assert True
     """
     reader = napari_get_reader("fake.file")
     assert reader is None
