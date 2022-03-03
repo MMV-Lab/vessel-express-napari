@@ -150,8 +150,8 @@ class ParameterTuning(QWidget):
         self.s_gamma.setOrientation(Qt.Horizontal)
         self.s_gamma.setPageStep(2)
         self.s_kernel_size = QSlider()
-        self.s_kernel_size.setRange(0,10)
-        self.s_kernel_size.setValue(0)
+        self.s_kernel_size.setRange(1,10)
+        self.s_kernel_size.setValue(1)
         self.s_kernel_size.setOrientation(Qt.Horizontal)
         self.s_kernel_size.setPageStep(2)
         self.s_min_thick = QSlider()    # DOUBLED TO MAKE INT WORK
@@ -630,7 +630,7 @@ class ParameterTuning(QWidget):
                     image = layer.data
                     break
             min_thickness = self.s_min_thick.value()/2
-            thin = self.s_thin.value()/2
+            thin = self.s_thin.value()
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
 
         self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
