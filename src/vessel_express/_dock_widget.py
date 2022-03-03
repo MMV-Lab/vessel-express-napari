@@ -32,6 +32,7 @@ class ParameterTuning(QWidget):
         self.l_7 = QLabel("post-cleaning:")
         self.l_scale = QLabel("scale")
         self.l_sigma = QLabel("- sigma")
+        self.l_gamma = QLabel("- gamma")
         self.l_operation_dim = QLabel("- operation_dim")
         self.l_cutoff_method = QLabel("- cutoff-method")
         self.l_threshold_result = QLabel("threshold result")
@@ -118,10 +119,7 @@ class ParameterTuning(QWidget):
             "Larger value will help you pick up thicker vessels."
         )
         self.l_sigma.setToolTip(core_vessel_sigma_tip)
-        core_vessel_dim_tip = (
-            "Choose 3D (apply 3D filter) or 2D (apply 2D filter slice by slice)."
-        )
-        self.l_operation_dim.setToolTip(core_vessel_dim_tip)
+        self.l_gamma.setToolTip("gamma value of Frangi filter")
         core_vessel_cutoff_tip = (
             "Choose between different thresholding method to binarize\n"
             "the filter output into segmentation result."
@@ -146,6 +144,11 @@ class ParameterTuning(QWidget):
         self.s_sigma.setValue(1)
         self.s_sigma.setOrientation(Qt.Horizontal)
         self.s_sigma.setPageStep(2)
+        self.s_gamma = QSlider() 
+        self.s_gamma.setRange(1,500)
+        self.s_gamma.setValue(5)
+        self.s_gamma.setOrientation(Qt.Horizontal)
+        self.s_gamma.setPageStep(2)
         self.s_kernel_size = QSlider()
         self.s_kernel_size.setRange(0,10)
         self.s_kernel_size.setValue(0)
@@ -172,6 +175,8 @@ class ParameterTuning(QWidget):
         self.n_scale.setText("0")
         self.n_sigma = QLabel()
         self.n_sigma.setText("0.5")
+        self.n_gamma = QLabel()
+        self.n_gamma.setText("5")
         self.n_kernel_size = QLabel()
         self.n_kernel_size.setText("0")
         self.n_min_thick = QLabel()
@@ -184,6 +189,7 @@ class ParameterTuning(QWidget):
         # Link sliders and numeric labels
         self.s_scale.valueChanged.connect(self._update_scale)
         self.s_sigma.valueChanged.connect(self._update_sigma)
+        self.s_gamma.valueChanged.connect(self._update_gamma)
         self.s_kernel_size.valueChanged.connect(self._update_kernel_size)
         self.s_min_thick.valueChanged.connect(self._update_min_thick)
         self.s_thin.valueChanged.connect(self._update_thin)
@@ -328,8 +334,9 @@ class ParameterTuning(QWidget):
         self.h_3_2.layout().addWidget(self.n_sigma)
         self.h_3_3 = QWidget()
         self.h_3_3.setLayout(QHBoxLayout())
-        self.h_3_3.layout().addWidget(self.l_operation_dim)
-        self.h_3_3.layout().addWidget(self.c_operation_dim)
+        self.h_3_3.layout().addWidget(self.l_gamma)
+        self.h_3_3.layout().addWidget(self.s_gamma)
+        self.h_3_3.layout().addWidget(self.n_gamma)
         self.h_3_4 = QWidget()
         self.h_3_4.setLayout(QHBoxLayout())
         self.h_3_4.layout().addWidget(self.l_cutoff_method)
@@ -451,6 +458,9 @@ class ParameterTuning(QWidget):
     def _update_sigma(self):
         self.n_sigma.setText(str(self.s_sigma.value()/2))
 
+    def _update_gamma(self):
+        self.n_gamma.setText(str(self.s_gamma.value()))
+
     def _update_kernel_size(self):
         self.n_kernel_size.setText(str(self.s_kernel_size.value()))
 
@@ -532,13 +542,14 @@ class ParameterTuning(QWidget):
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
                     break
-            dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
+            dim = 3 #[2,3][(self.c_operation_dim.currentText() == "3D")]
             sigma = self.s_sigma.value()/2
+            gamma = self.s_gamma.value()
             cutoff_method = self.c_cutoff_method.currentText()
         print(f"running {dim}D vesselness filter ...")
-        out = vesselness_filter(image, dim, sigma, cutoff_method)
+        out = vesselness_filter(image, dim, sigma, gamma, cutoff_method)
         print("vesselness filter is done")
-        self.viewer.add_image(data = out, name = f"ves_{dim}D_{sigma}_{cutoff_method}", blending="additive")
+        self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}_{dim}D", blending="additive")
         if preset:
             return out
 
@@ -621,6 +632,7 @@ class ParameterTuning(QWidget):
             min_thickness = self.s_min_thick.value()/2
             thin = self.s_thin.value()/2
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
+
         self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
         if preset:
             return out
