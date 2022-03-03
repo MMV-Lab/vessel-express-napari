@@ -77,7 +77,7 @@ class ParameterTuning(QWidget):
 
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>sigma: The kernel size of the Frangi filter. Use a large sigma for thicker vessels.<br>\n"
-            "\toperation_dim: Select weather to apply the filter in 3D or in 2D in a slice-by-slice manner.<br>\n"
+            "\tgamma: the gamma value in Frangi filter, larger value results in less sensitive filter.<br>\n"
             "\tcutoff-method: The method used to determine how to binarize the filter result as segmentation.</p>\n\n"
             "Instruction: \n"
             "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select parameters and click \"Run\".</p>"
@@ -112,7 +112,7 @@ class ParameterTuning(QWidget):
         )
         self.l_6.setToolTip(post_thin_tip)
         self.l_7.setToolTip("Any segmented objects smaller than min_size will be removed to clean up your result.")
-        self.l_8.setToolTip("remove small holes in the segmentation to avoid loos in skeleton")
+        self.l_8.setToolTip("remove small holes in the segmentation to avoid loops in skeleton")
         self.l_9.setToolTip("show skeleton")
         
         core_thresh_scale_tip = (
@@ -219,7 +219,7 @@ class ParameterTuning(QWidget):
         self.btn_thinning = QPushButton("Run")
         self.btn_cleaning = QPushButton("Run")
         self.btn_hole = QPushButton("Run")
-        self.btn_skeleton = QPushButton("Generate and View Skeleton")
+        self.btn_skeleton = QPushButton("Run")
 
         # Add functions to buttons
         self.btn_preset.clicked.connect(self._run_preset)
