@@ -610,7 +610,7 @@ class ParameterTuning(QWidget):
         """
 
         if not preset:
-            selected_layer = self.c_smoothing.currentText()
+            selected_layer = self.c_vesselness.currentText()
             for layer in self.viewer.layers:
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
