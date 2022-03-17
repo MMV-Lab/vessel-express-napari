@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy
+from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox
 import napari
 from napari_plugin_engine import napari_hook_implementation
 from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox
@@ -30,8 +30,11 @@ class ParameterTuning(QWidget):
         self.l_5 = QLabel("post-closing:")
         self.l_6 = QLabel("post-thinning:")
         self.l_7 = QLabel("post-cleaning:")
+        self.l_8 = QLabel("post-hole-removing:")
+        self.l_9 = QLabel("skeletonization:")
         self.l_scale = QLabel("scale")
         self.l_sigma = QLabel("- sigma")
+        self.l_gamma = QLabel("- gamma")
         self.l_operation_dim = QLabel("- operation_dim")
         self.l_cutoff_method = QLabel("- cutoff-method")
         self.l_threshold_result = QLabel("threshold result")
@@ -41,6 +44,7 @@ class ParameterTuning(QWidget):
         self.l_min_thick = QLabel("min_thickness")
         self.l_thin = QLabel("thin")
         self.l_min_size = QLabel("min_size")
+        self.l_max_hole_size = QLabel("max hole size")
 
         # Set tooltips
         smoothing_layer_tip = (
@@ -73,7 +77,7 @@ class ParameterTuning(QWidget):
 
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>sigma: The kernel size of the Frangi filter. Use a large sigma for thicker vessels.<br>\n"
-            "\toperation_dim: Select weather to apply the filter in 3D or in 2D in a slice-by-slice manner.<br>\n"
+            "\tgamma: the gamma value in Frangi filter, larger value results in less sensitive filter.<br>\n"
             "\tcutoff-method: The method used to determine how to binarize the filter result as segmentation.</p>\n\n"
             "Instruction: \n"
             "\t<p style='margin-left: 40px'>Select the image (usually the smoothed image) to apply on, select parameters and click \"Run\".</p>"
@@ -90,7 +94,7 @@ class ParameterTuning(QWidget):
             "\tresult looks after merging them.</p>"
         )
         self.l_4.setToolTip(core_merge_tip)
-        post_clost_tip = (
+        post_close_tip = (
             "Goal of this step: The vesselness filter may have broken segmentation near junction areas. You can use this closing step to bridge such gaps.<br><br>\n \n"
             "Parameters: \n"
             "\t<p style='margin-left: 40px'>kernel_size: A large value will close larger gaps, but may falsely merge proximal vessels.</p>\n\n"
@@ -98,7 +102,7 @@ class ParameterTuning(QWidget):
             "\t<p style='margin-left: 40px'>Select the segmentation result (usually after merging) to apply on,<br>\n"
             "\tselect the kernel_size and click \"Run\".</p>"
         )
-        self.l_5.setToolTip(post_clost_tip)
+        self.l_5.setToolTip(post_close_tip)
         post_thin_tip = (
             "Goal of this step: Thin the segmentation results.<br><br>\n\n"
             "The segmentation result may look thicker than it should be due to the diffraction of light. When necessary, this thinning step can make them thinner without breaking the connectivity.<br><br>\n\n"
@@ -108,6 +112,8 @@ class ParameterTuning(QWidget):
         )
         self.l_6.setToolTip(post_thin_tip)
         self.l_7.setToolTip("Any segmented objects smaller than min_size will be removed to clean up your result.")
+        self.l_8.setToolTip("remove small holes in the segmentation to avoid loops in skeleton")
+        self.l_9.setToolTip("show skeleton")
         
         core_thresh_scale_tip = (
             "Larger value will result in higher threshold value,\n"
@@ -118,10 +124,7 @@ class ParameterTuning(QWidget):
             "Larger value will help you pick up thicker vessels."
         )
         self.l_sigma.setToolTip(core_vessel_sigma_tip)
-        core_vessel_dim_tip = (
-            "Choose 3D (apply 3D filter) or 2D (apply 2D filter slice by slice)."
-        )
-        self.l_operation_dim.setToolTip(core_vessel_dim_tip)
+        self.l_gamma.setToolTip("gamma value of Frangi filter")
         core_vessel_cutoff_tip = (
             "Choose between different thresholding method to binarize\n"
             "the filter output into segmentation result."
@@ -134,6 +137,7 @@ class ParameterTuning(QWidget):
         self.l_min_thick.setToolTip("Any vessel thinner than this value will <b>not</b> be further thinned.")
         self.l_thin.setToolTip("How many pixels to thin your vessels by.")
         self.l_min_size.setToolTip("The minimum size of segmented objects to keep.")
+        self.l_max_hole_size.setToolTip("the maximum size of holes to be filled")
 
         # Sliders
         self.s_scale = QSlider()    # DOUBLED TO MAKE INT WORK
@@ -146,9 +150,14 @@ class ParameterTuning(QWidget):
         self.s_sigma.setValue(1)
         self.s_sigma.setOrientation(Qt.Horizontal)
         self.s_sigma.setPageStep(2)
+        self.s_gamma = QSlider() 
+        self.s_gamma.setRange(1,500)
+        self.s_gamma.setValue(5)
+        self.s_gamma.setOrientation(Qt.Horizontal)
+        self.s_gamma.setPageStep(2)
         self.s_kernel_size = QSlider()
-        self.s_kernel_size.setRange(0,10)
-        self.s_kernel_size.setValue(0)
+        self.s_kernel_size.setRange(1,10)
+        self.s_kernel_size.setValue(1)
         self.s_kernel_size.setOrientation(Qt.Horizontal)
         self.s_kernel_size.setPageStep(2)
         self.s_min_thick = QSlider()    # DOUBLED TO MAKE INT WORK
@@ -166,28 +175,39 @@ class ParameterTuning(QWidget):
         self.s_min_size.setValue(1)
         self.s_min_size.setOrientation(Qt.Horizontal)
         self.s_min_size.setPageStep(10)
+        self.s_max_hole_size = QSlider()
+        self.s_max_hole_size.setRange(1,100)
+        self.s_max_hole_size.setValue(10)
+        self.s_max_hole_size.setOrientation(Qt.Horizontal)
+        self.s_max_hole_size.setPageStep(2)
 
         # Numeric Labels
         self.n_scale = QLabel()
         self.n_scale.setText("0")
         self.n_sigma = QLabel()
         self.n_sigma.setText("0.5")
+        self.n_gamma = QLabel()
+        self.n_gamma.setText("5")
         self.n_kernel_size = QLabel()
-        self.n_kernel_size.setText("0")
+        self.n_kernel_size.setText("1")
         self.n_min_thick = QLabel()
         self.n_min_thick.setText("1")
         self.n_thin = QLabel()
         self.n_thin.setText("1")
         self.n_min_size = QLabel()
         self.n_min_size.setText("1")
+        self.n_max_hole_size = QLabel()
+        self.n_max_hole_size.setText("10")
 
         # Link sliders and numeric labels
         self.s_scale.valueChanged.connect(self._update_scale)
         self.s_sigma.valueChanged.connect(self._update_sigma)
+        self.s_gamma.valueChanged.connect(self._update_gamma)
         self.s_kernel_size.valueChanged.connect(self._update_kernel_size)
         self.s_min_thick.valueChanged.connect(self._update_min_thick)
         self.s_thin.valueChanged.connect(self._update_thin)
         self.s_min_size.valueChanged.connect(self._update_min_size)
+        self.s_max_hole_size.valueChanged.connect(self._update_max_hole_size)
 
         # Buttons
         self.btn_preset = QPushButton("Run Preset")
@@ -198,6 +218,8 @@ class ParameterTuning(QWidget):
         self.btn_closing = QPushButton("Run")
         self.btn_thinning = QPushButton("Run")
         self.btn_cleaning = QPushButton("Run")
+        self.btn_hole = QPushButton("Run")
+        self.btn_skeleton = QPushButton("Run")
 
         # Add functions to buttons
         self.btn_preset.clicked.connect(self._run_preset)
@@ -208,6 +230,8 @@ class ParameterTuning(QWidget):
         self.btn_closing.clicked.connect(self._closing)
         self.btn_thinning.clicked.connect(self._thinning)
         self.btn_cleaning.clicked.connect(self._cleaning)
+        self.btn_hole.clicked.connect(self._hole_removal)
+        self.btn_skeleton.clicked.connect(self._skeleton)
 
         # Horizontal lines
         self.line_1 = QWidget()
@@ -215,7 +239,7 @@ class ParameterTuning(QWidget):
         self.line_1.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_1.setStyleSheet("background-color: #c0c0c0")
         self.line_2 = QWidget()
-        self.line_2.setFixedHeight(2)
+        self.line_2.setFixedHeight(4)
         self.line_2.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_2.setStyleSheet("background-color: #c0c0c0")
         self.line_3 = QWidget()
@@ -234,17 +258,25 @@ class ParameterTuning(QWidget):
         self.line_6.setFixedHeight(4)
         self.line_6.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_6.setStyleSheet("background-color: #c0c0c0")
+        self.line_7 = QWidget()
+        self.line_7.setFixedHeight(4)
+        self.line_7.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
+        self.line_7.setStyleSheet("background-color: #c0c0c0")
+        """self.line_8 = QWidget()
+        self.line_8.setFixedHeight(4)
+        self.line_8.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
+        self.line_8.setStyleSheet("background-color: #c0c0c0")"""
 
         # Combo boxes
         self.c_preset = QComboBox()
         self.c_preset.addItem("Bladder")
         self.c_preset.addItem("Brain")
-        self.c_preset.addItem("Ear")
+        #self.c_preset.addItem("Ear")
         self.c_preset.addItem("Heart")
         self.c_preset.addItem("Liver")
-        self.c_preset.addItem("Muscle")
+        #self.c_preset.addItem("Muscle")
         self.c_preset.addItem("Spinal Cord")
-        self.c_preset.addItem("Tongue")
+        #self.c_preset.addItem("Tongue")
         self.c_preset_input = QComboBox()
         self.c_smoothing = QComboBox()
         self.c_threshold = QComboBox()
@@ -263,8 +295,22 @@ class ParameterTuning(QWidget):
         self.c_closing = QComboBox()
         self.c_thinning = QComboBox()
         self.c_cleaning = QComboBox()
-        self.list_comboboxes = [self.c_preset_input,self.c_smoothing,self.c_threshold,self.c_vesselness,
-        self.c_merge_1,self.c_merge_2,self.c_merge_3,self.c_closing,self.c_thinning,self.c_cleaning]
+        self.c_hole = QComboBox()
+        self.c_skeleton = QComboBox()
+        self.list_comboboxes = [
+            self.c_preset_input,
+            self.c_smoothing,
+            self.c_threshold,
+            self.c_vesselness,
+            self.c_merge_1,
+            self.c_merge_2,
+            self.c_merge_3,
+            self.c_closing,
+            self.c_thinning,
+            self.c_cleaning,
+            self.c_hole,
+            self.c_skeleton
+        ]
 
         # Add content to layer selecting comboboxes
         self._update_layer_lists()
@@ -328,8 +374,9 @@ class ParameterTuning(QWidget):
         self.h_3_2.layout().addWidget(self.n_sigma)
         self.h_3_3 = QWidget()
         self.h_3_3.setLayout(QHBoxLayout())
-        self.h_3_3.layout().addWidget(self.l_operation_dim)
-        self.h_3_3.layout().addWidget(self.c_operation_dim)
+        self.h_3_3.layout().addWidget(self.l_gamma)
+        self.h_3_3.layout().addWidget(self.s_gamma)
+        self.h_3_3.layout().addWidget(self.n_gamma)
         self.h_3_4 = QWidget()
         self.h_3_4.setLayout(QHBoxLayout())
         self.h_3_4.layout().addWidget(self.l_cutoff_method)
@@ -419,12 +466,72 @@ class ParameterTuning(QWidget):
         self.zone_7.layout().addWidget(self.h_7_1)
         self.zone_7.layout().addWidget(self.h_7_2)
 
+        # Zone 8
+        self.h_8_1 = QWidget()
+        self.h_8_1.setLayout(QHBoxLayout())
+        self.h_8_1.layout().addWidget(self.l_8)
+        self.h_8_1.layout().addWidget(self.c_hole)
+        self.h_8_1.layout().addWidget(self.btn_hole)
+        self.h_8_2 = QWidget()
+        self.h_8_2.setLayout(QHBoxLayout())
+        self.h_8_2.layout().addWidget(self.l_max_hole_size)
+        self.h_8_2.layout().addWidget(self.s_max_hole_size)
+        self.h_8_2.layout().addWidget(self.n_max_hole_size)
+        self.zone_8 = QWidget()
+        self.zone_8.setLayout(QVBoxLayout())
+        self.zone_8.layout().addWidget(self.h_8_1)
+        self.zone_8.layout().addWidget(self.h_8_2)
+
+        # Zone 9
+        self.h_9_1 = QWidget()
+        self.h_9_1.setLayout(QHBoxLayout())
+        self.h_9_1.layout().addWidget(self.l_9)
+        self.h_9_1.layout().addWidget(self.c_skeleton)
+        self.h_9_1.layout().addWidget(self.btn_skeleton)
+        self.zone_9 = QWidget()
+        self.zone_9.setLayout(QVBoxLayout())
+        self.zone_9.layout().addWidget(self.h_9_1)
+
+        # Merge zones
+        self.zone_pre = QWidget()
+        self.zone_pre.setLayout(QVBoxLayout())
+        self.zone_pre.layout().addWidget(self.zone_1)
+        self.zone_pre.layout().addWidget(self.line_1)
+
+        self.zone_core = QWidget()
+        self.zone_core.setLayout(QVBoxLayout())
+        self.zone_core.layout().addWidget(self.zone_2)
+        self.zone_core.layout().addWidget(self.line_2)
+        self.zone_core.layout().addWidget(self.zone_3)
+        
+        self.zone_post = QWidget()
+        self.zone_post.setLayout(QVBoxLayout())
+        self.zone_post.layout().addWidget(self.zone_4)
+        self.zone_post.layout().addWidget(self.line_3)
+        self.zone_post.layout().addWidget(self.zone_5)
+        self.zone_post.layout().addWidget(self.line_4)
+        self.zone_post.layout().addWidget(self.zone_6)
+        self.zone_post.layout().addWidget(self.line_5)
+        self.zone_post.layout().addWidget(self.zone_7)
+        self.zone_post.layout().addWidget(self.line_6)
+        self.zone_post.layout().addWidget(self.zone_8)
+        self.zone_post.layout().addWidget(self.line_7)
+        self.zone_post.layout().addWidget(self.zone_9)
+
+        # Putting zones in collapsible toolbox areas
+        self.t_collapse = QToolBox()
+        self.t_collapse.addItem(self.zone_pre, "pre-processing")
+        self.t_collapse.addItem(self.zone_core, "core-segmentation")
+        self.t_collapse.addItem(self.zone_post, "post-processing")
+        self.t_collapse.addItem(self.zone_0, "presets")
+
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
-        self.content.layout().addWidget(self.zone_0)
+        #self.content.layout().addWidget(self.zone_0)
         self.content.layout().addWidget(self.l_title)
-        self.content.layout().addWidget(self.zone_1)
+        self.content.layout().addWidget(self.t_collapse)
+        """self.content.layout().addWidget(self.zone_1)
         self.content.layout().addWidget(self.line_1)
         self.content.layout().addWidget(self.zone_2)
         self.content.layout().addWidget(self.line_2)
@@ -437,12 +544,16 @@ class ParameterTuning(QWidget):
         self.content.layout().addWidget(self.zone_6)
         self.content.layout().addWidget(self.line_6)
         self.content.layout().addWidget(self.zone_7)
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.content)
+        self.content.layout().addWidget(self.line_7)
+        self.content.layout().addWidget(self.zone_8)
+        self.content.layout().addWidget(self.line_8)
+        self.content.layout().addWidget(self.zone_9)"""
+        #self.scroll_area = QScrollArea()
+        #self.scroll_area.setWidget(self.content)
 
         # Setting layout
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self.scroll_area)
+        self.layout().addWidget(self.content)
 
     # Slider update functions
     def _update_scale(self):
@@ -450,6 +561,9 @@ class ParameterTuning(QWidget):
 
     def _update_sigma(self):
         self.n_sigma.setText(str(self.s_sigma.value()/2))
+
+    def _update_gamma(self):
+        self.n_gamma.setText(str(self.s_gamma.value()))
 
     def _update_kernel_size(self):
         self.n_kernel_size.setText(str(self.s_kernel_size.value()))
@@ -462,6 +576,9 @@ class ParameterTuning(QWidget):
 
     def _update_min_size(self):
         self.n_min_size.setText(str(self.s_min_size.value()))
+
+    def _update_max_hole_size(self):
+        self.n_max_hole_size.setText(str(self.s_max_hole_size.value()))
 
     # Button onclick functions
     def _smoothing(self, preset = False, data = ""):
@@ -508,7 +625,7 @@ class ParameterTuning(QWidget):
         if preset:
             return out
 
-    def _vesselness(self, preset = False, image = "", sigma = 0, dim = 0, cutoff_method = ""):  # HALVE VALUE
+    def _vesselness(self, preset = False, image = "", sigma = 0, gamma = 0, dim = 0, cutoff_method = ""):  # HALVE VALUE
         """
         apply vesselness filter on images
         Parameters:
@@ -532,13 +649,14 @@ class ParameterTuning(QWidget):
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
                     break
-            dim = [2,3][(self.c_operation_dim.currentText() == "3D")]
+            dim = 3 #[2,3][(self.c_operation_dim.currentText() == "3D")]
             sigma = self.s_sigma.value()/2
+            gamma = self.s_gamma.value()
             cutoff_method = self.c_cutoff_method.currentText()
         print(f"running {dim}D vesselness filter ...")
-        out = vesselness_filter(image, dim, sigma, cutoff_method)
+        out = vesselness_filter(image, dim, sigma, gamma, cutoff_method)
         print("vesselness filter is done")
-        self.viewer.add_image(data = out, name = f"ves_{dim}D_{sigma}_{cutoff_method}", blending="additive")
+        self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}_{dim}D", blending="additive")
         if preset:
             return out
 
@@ -595,6 +713,32 @@ class ParameterTuning(QWidget):
         self.viewer.add_image(data = out, name = "closed_segmentation", blending="additive")
         if preset:
             return out
+    
+    def _hole_removal(self, preset = False, image = "", max_size = 0):
+        """
+        remove small holes in segmentation
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        max_size: int
+            the max hole size to remove
+        Return
+        -------------
+        np.ndarray
+        """
+        from aicssegmentation.core.utils import hole_filling
+        if not preset:
+            selected_layer = self.c_hole.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            max_size = self.s_max_hole_size.value()
+        out = hole_filling(image, hole_min=1, hole_max=max_size, fill_2d=True)
+        self.viewer.add_image(data = out, name = "filled_holes_seg", blending="additive")
+        if preset:
+            return out
 
     def _thinning(self, preset = False, image ="", min_thickness = 0, thin = 0):    # HALVE ONE VALUE
         """
@@ -619,8 +763,9 @@ class ParameterTuning(QWidget):
                     image = layer.data
                     break
             min_thickness = self.s_min_thick.value()/2
-            thin = self.s_thin.value()/2
+            thin = self.s_thin.value()
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
+
         self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
         if preset:
             return out
@@ -648,6 +793,32 @@ class ParameterTuning(QWidget):
             min_size = self.s_min_size.value()/2
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = "cleaned_segmentation", blending="additive")
+
+    def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
+        """
+        perform skeletonization
+
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+
+        Return
+        -------------
+        np.ndarray
+        """
+        from skimage.morphology import skeletonize_3d
+        if not preset:
+            selected_layer = self.c_skeleton.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+        out = skeletonize_3d(image > 0)
+
+        self.viewer.add_image(data = out, name = "skeleton", blending="additive")
+        if preset:
+            return out
 
     # Combobox update function
     def _update_layer_lists(self, index = 0, new_index = 0, old_value = "", value = "", ):
