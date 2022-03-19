@@ -154,7 +154,7 @@ class ParameterTuning(QWidget):
         self.s_gamma.setRange(1,500)
         self.s_gamma.setValue(5)
         self.s_gamma.setOrientation(Qt.Horizontal)
-        self.s_gamma.setPageStep(2)
+        self.s_gamma.setPageStep(5)
         self.s_kernel_size = QSlider()
         self.s_kernel_size.setRange(1,10)
         self.s_kernel_size.setValue(1)
@@ -676,7 +676,7 @@ class ParameterTuning(QWidget):
                     break
             kernel = self.s_kernel_size.value()
         out = binary_closing(image, cube(kernel))
-        self.viewer.add_image(data = out, name = "closed_segmentation", blending="additive")
+        self.viewer.add_image(data = out, name = f"closing_{kernel}", blending="additive")
         if preset:
             return out
     
@@ -756,7 +756,7 @@ class ParameterTuning(QWidget):
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
                     break
-            min_size = self.s_min_size.value()/2
+            min_size = self.s_min_size.value()
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = "cleaned_segmentation", blending="additive")
 
