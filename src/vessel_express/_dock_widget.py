@@ -825,12 +825,12 @@ class ParameterTuning(QWidget):
             self._cleaning(preset = True, image = thinned, min_size = 100)
 
         elif self.c_preset.currentIndex() == 1: # bone preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, gamma = 110, cutoff_method = "threshold_li")
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 110, cutoff_method = "threshold_li")
             merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
             closed = self._closing(preset = True, image = merge, kernel = 3)
-            self._cleaning(preset = True, image = CORO_CLOSED, min_size = 100)
+            self._cleaning(preset = True, image = closed, min_size = 100)
 
         elif self.c_preset.currentIndex() == 2: # Brain preset
             smooth_image = self._smoothing(preset = True, data = image)
