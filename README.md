@@ -7,31 +7,30 @@
 [![codecov](https://codecov.io/gh/MMV-Lab/vessel-express/branch/main/graph/badge.svg)](https://codecov.io/gh/MMV-Lab/vessel-express)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express)](https://napari-hub.org/plugins/vessel-express)
 
-A simple plugin to use with napari
+A simple plugin for 3D vessel segmentation of LSFM images
 
 ----------------------------------
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
 
-<!--
-Don't miss the full getting started guide to set up your new package:
-https://github.com/napari/cookiecutter-napari-plugin#getting-started
-
-and review the napari docs for plugin developers:
-https://napari.org/plugins/stable/index.html
--->
 
 ## Installation
 
-You can install `vessel-express` via [pip]:
+The easiest way to install the plugin is to open napari, go to Plugins, then Install/Uninstall plugins. You will be able to find the plugin by name "vessel-express". 
+
+Or, you can install `vessel-express` via [pip]:
 
     pip install vessel-express
-
 
 
 To install latest development version :
 
     pip install git+https://github.com/MMV-Lab/vessel-express.git
+
+
+## Documentation
+
+We provide a [quick start guide](quick_start.md) to explain the important pieces of this plugin. Suggestions and feature quests are very welcomed. 
 
 
 ## Contributing
