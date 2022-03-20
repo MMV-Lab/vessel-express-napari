@@ -1,3 +1,4 @@
+from inspect import CORO_CLOSED
 from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy
 import napari
 from napari_plugin_engine import napari_hook_implementation
@@ -8,7 +9,9 @@ from tifffile import imread
 
 # packages required by processing functions
 from .utils import vesselness_filter
-from numpy import logical_or
+import os
+import numpy as np
+from glob import glob
 from aicssegmentation.core.pre_processing_utils import  edge_preserving_smoothing_3d
 from skimage.morphology import remove_small_objects, binary_closing, cube
 from aicssegmentation.core.utils import topology_preserving_thinning
@@ -154,7 +157,7 @@ class ParameterTuning(QWidget):
         self.s_gamma.setRange(1,500)
         self.s_gamma.setValue(5)
         self.s_gamma.setOrientation(Qt.Horizontal)
-        self.s_gamma.setPageStep(2)
+        self.s_gamma.setPageStep(5)
         self.s_kernel_size = QSlider()
         self.s_kernel_size.setRange(1,10)
         self.s_kernel_size.setValue(1)
@@ -270,13 +273,14 @@ class ParameterTuning(QWidget):
         # Combo boxes
         self.c_preset = QComboBox()
         self.c_preset.addItem("Bladder")
+        self.c_preset.addItem("Bone")
         self.c_preset.addItem("Brain")
-        #self.c_preset.addItem("Ear")
+        self.c_preset.addItem("Ear")
         self.c_preset.addItem("Heart")
         self.c_preset.addItem("Liver")
-        #self.c_preset.addItem("Muscle")
+        self.c_preset.addItem("Muscle")
         self.c_preset.addItem("Spinal Cord")
-        #self.c_preset.addItem("Tongue")
+        self.c_preset.addItem("Tongue")
         self.c_preset_input = QComboBox()
         self.c_smoothing = QComboBox()
         self.c_threshold = QComboBox()
@@ -591,7 +595,7 @@ class ParameterTuning(QWidget):
         if preset:
             return out
 
-    def _vesselness(self, preset = False, image = "", sigma = 0, dim = 0, cutoff_method = ""):  # HALVE VALUE
+    def _vesselness(self, preset = False, image = "", sigma = 0, gamma = 5, dim = 3, cutoff_method = ""):  # HALVE VALUE
         """
         apply vesselness filter on images
         Parameters:
@@ -610,7 +614,7 @@ class ParameterTuning(QWidget):
         """
 
         if not preset:
-            selected_layer = self.c_smoothing.currentText()
+            selected_layer = self.c_vesselness.currentText()
             for layer in self.viewer.layers:
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
@@ -619,10 +623,8 @@ class ParameterTuning(QWidget):
             sigma = self.s_sigma.value()/2
             gamma = self.s_gamma.value()
             cutoff_method = self.c_cutoff_method.currentText()
-        print(f"running {dim}D vesselness filter ...")
         out = vesselness_filter(image, dim, sigma, gamma, cutoff_method)
-        print("vesselness filter is done")
-        self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}_{dim}D", blending="additive")
+        self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}", blending="additive")
         if preset:
             return out
 
@@ -640,15 +642,15 @@ class ParameterTuning(QWidget):
                     if counter == 0:
                         seg = image > 0
                     else:
-                        seg = logical_or(seg, image > 0)
+                        seg = np.logical_or(seg, image > 0)
                     counter += 1
                     if counter == 3:
                         break
         else:
             seg = data1 > 0
-            seg = logical_or(seg, data2 > 0)
+            seg = np.logical_or(seg, data2 > 0)
             if layers == 3:
-                seg = logical_or(seg, data3 > 0)
+                seg = np.logical_or(seg, data3 > 0)
         self.viewer.add_image(data = seg, name = "merged_segmentation", blending="additive")
         if preset:
             return seg
@@ -676,7 +678,7 @@ class ParameterTuning(QWidget):
                     break
             kernel = self.s_kernel_size.value()
         out = binary_closing(image, cube(kernel))
-        self.viewer.add_image(data = out, name = "closed_segmentation", blending="additive")
+        self.viewer.add_image(data = out, name = f"closing_{kernel}", blending="additive")
         if preset:
             return out
     
@@ -702,7 +704,7 @@ class ParameterTuning(QWidget):
                     break
             max_size = self.s_max_hole_size.value()
         out = hole_filling(image, hole_min=1, hole_max=max_size, fill_2d=True)
-        self.viewer.add_image(data = out, name = "filled_holes_seg", blending="additive")
+        self.viewer.add_image(data = out, name = f"hole_filled_{max_size}", blending="additive")
         if preset:
             return out
 
@@ -732,7 +734,7 @@ class ParameterTuning(QWidget):
             thin = self.s_thin.value()
         out = topology_preserving_thinning(image > 0, min_thickness, thin)
 
-        self.viewer.add_image(data = out, name = "thinned_segmentation", blending="additive")
+        self.viewer.add_image(data = out, name = f"thinned_{min_thickness}_{thin}", blending="additive")
         if preset:
             return out
 
@@ -756,9 +758,9 @@ class ParameterTuning(QWidget):
                 if layer.name == selected_layer and type(layer) == Image:
                     image = layer.data
                     break
-            min_size = self.s_min_size.value()/2
+            min_size = self.s_min_size.value()
         out = remove_small_objects(image > 0, min_size)
-        self.viewer.add_image(data = out, name = "cleaned_segmentation", blending="additive")
+        self.viewer.add_image(data = out, name = f"cleaned_{min_size}", blending="additive")
 
     def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
         """
@@ -813,73 +815,78 @@ class ParameterTuning(QWidget):
                 break
 
         if self.c_preset.currentIndex() == 0: # Bladder preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 3, dim = 3, cutoff_method = "threshold_otsu")
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma=5, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 3, gamma=5, cutoff_method = "threshold_otsu")
             merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
             closed = self._closing(preset = True, image = merge, kernel = 5)
             thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
             self._cleaning(preset = True, image = thinned, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 1: # Brain preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_li")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_li")
+        elif self.c_preset.currentIndex() == 1: # bone preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 110, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
+            closed = self._closing(preset = True, image = merge, kernel = 3)
+            self._cleaning(preset = True, image = closed, min_size = 100)
+
+        elif self.c_preset.currentIndex() == 2: # Brain preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 5, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 5, cutoff_method = "threshold_li")
             merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
             closed = self._closing(preset = True, image = merge, kernel = 5)
             self._cleaning(preset = True, image = closed, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 2: # Ear preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
-            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+        elif self.c_preset.currentIndex() == 3: # Ear preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 2.5)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 150, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
             self._cleaning(preset = True, image = merge, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 3: # Heart preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_li")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_otsu")
+        elif self.c_preset.currentIndex() == 4: # Heart preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 5, cutoff_method = "threshold_li")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 5, cutoff_method = "threshold_otsu")
             merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
             thinned = self._thinning(preset = True, image = merge, min_thickness = 1, thin = 1)
             self._cleaning(preset = True, image = thinned, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 4: # Liver preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_li")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 2, cutoff_method = "threshold_otsu")
-            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+        elif self.c_preset.currentIndex() == 5: # Liver preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 10, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
             closed = self._closing(preset = True, image = merge, kernel = 5)
             self._cleaning(preset = True, image = closed, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 5: # Muscle preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
+        elif self.c_preset.currentIndex() == 6: # Muscle preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3.5)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 70, cutoff_method = "threshold_li")
             merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
             self._cleaning(preset = True, image = merge, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 6: # Spinal cord preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 2, dim = 3, cutoff_method = "threshold_triangle")
+        elif self.c_preset.currentIndex() == 7: # Spinal cord preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 5, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 5, cutoff_method = "threshold_triangle")
             merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
             closed = self._closing(preset = True, image = merge, kernel = 3)
             thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
             self._cleaning(preset = True, image = thinned, min_size = 100)
 
-        elif self.c_preset.currentIndex() == 7: # Tongue preset
-            image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = image, scale = 3)
-            vessel2 = self._vesselness(preset = True, image = image, sigma = 1, dim = 2, cutoff_method = "threshold_li")
-            vessel3 = self._vesselness(preset = True, image = image, sigma = 1, dim = 3, cutoff_method = "threshold_triangle")
-            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+        elif self.c_preset.currentIndex() == 8: # Tongue preset
+            smooth_image = self._smoothing(preset = True, data = image)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 4)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 180, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
             thinned = self._thinning(preset = True, image = merge, min_thickness = 1, thin = 1)
             self._cleaning(preset = True, image = thinned, min_size = 100)
 
@@ -897,6 +904,11 @@ class ParameterTuning(QWidget):
         # TODO: Implement error if less layers exist than requested
         pass
     """
+
+
+#################################
+# the second part
+#################################
 class Evaluation(QWidget):
     def __init__(self, napari_viewer):
         super().__init__()
@@ -904,7 +916,7 @@ class Evaluation(QWidget):
 
         self.l_title = QLabel("<font color='green'>evaluate-segmentation:</font>")
         self.l_evaluate = QLabel("Please evaluate the segmentation!")
-        self.l_directory = QLabel()
+        self.l_directory = QLabel("No file displayed yets")
 
 
         self.btn_next = QPushButton("Next image")
@@ -918,17 +930,30 @@ class Evaluation(QWidget):
         self.c_eval = QComboBox()
         self.c_eval.addItem("No evaluation")
         self.c_eval.addItem("Good")
-        self.c_eval.addItem("Bad")
+        self.c_eval.addItem("Failed Segmentation")
+        self.c_eval.addItem("Bad Image")
+
+        self.line_1 = QWidget()
+        self.line_1.setFixedHeight(4)
+        self.line_1.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
+        self.line_1.setStyleSheet("background-color: #c0c0c0")
+
+        self.line_2 = QWidget()
+        self.line_2.setFixedHeight(4)
+        self.line_2.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
+        self.line_2.setStyleSheet("background-color: #c0c0c0")
         
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
         self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.btn_dir)
+        self.content.layout().addWidget(self.line_1)
         self.content.layout().addWidget(self.l_directory)
         self.content.layout().addWidget(self.btn_next)
         self.content.layout().addWidget(self.l_evaluate)
         self.content.layout().addWidget(self.c_eval)
+        self.content.layout().addWidget(self.line_2)
         self.content.layout().addWidget(self.btn_save)
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.content)
@@ -941,37 +966,40 @@ class Evaluation(QWidget):
 
     def _select_dir(self):
         self.directory = QFileDialog.getExistingDirectory(self, "Select Directory")
-        self.current = 0
+        self.filenames = glob(self.directory + os.sep + "Binary_*.tiff")
+        self.filenames.sort()
+        self.current_fn = None
+        self.total_num = len(self.filenames)
         self._next()
-        self.l_directory.setText(self.directory)
 
     def _next(self): # Removes all current layers and loads in two corresponding images as layers
-        try: # more files might not exist
-            next = self._get_next()
-        except:
+        if len(self.filenames) == 0:
             noMoreFiles = QMessageBox()
             noMoreFiles.setText("There are no more file tuples to evaluate!")
             noMoreFiles.exec()
             return
-        original = next[0]
-        segmentation = next[1]
-        if self.current > 0:
-            self._eval()
+        bw_fn = self.filenames.pop() # Assume the file name is Binary_xxxx.tiff
+        raw_fn = self.directory + os.sep + os.path.basename(bw_fn)[7:]
+        if not os.path.exists(raw_fn):
+            raw_fn = raw_fn[:-1]  # .tiff --> .tif
+        self.l_directory.setText(f"{self.total_num-len(self.filenames)} / {self.total_num}")
+        original = imread(raw_fn)
+        segmentation = imread(bw_fn)
         self._remove_layers()
-        self.current = self.current + 1
-        self.viewer.add_image(data = original, name = "Original data")
-        self.viewer.add_image(data = segmentation, name = "Segmentation data", blending = "additive")
+        if self.current_fn is not None:
+            self._eval()
+        vlow = np.percentile(original, 0.5)
+        vhigh = np.percentile(original, 99.5)
+        self.viewer.add_image(data = original, name = "Original data", blending = "additive", contrast_limits=[vlow, vhigh])
+        self.viewer.add_image(data = segmentation, name = "Segmentation data", colormap="magenta", blending = "additive")
+        self.current_fn = raw_fn
+        
 
-    def _get_next(self):
-        original = imread(files = self.directory + "/Raw_liver_" + str(self.current+1) + ".tiff")
-        segmentation = imread(files = self.directory + "/Binary_liver_" + str(self.current+1) + ".tiff")
-        return [original,segmentation]
-    
     def _eval(self):
-        self.evaluated.append("liver_" + str(self.current) + ".tiff: " + self.c_eval.currentText() + "\n")
+        self.evaluated.append(os.path.basename(self.current_fn) + ", " + self.c_eval.currentText() + "\n")
 
     def _save(self):
-        if self.current > 0:
+        if self.current_fn is not None:
             self._eval()
         filename = QFileDialog.getSaveFileName(self, caption = "test", directory  = self.directory, filter = "*.csv")
         outfile = open(filename[0],"a")
