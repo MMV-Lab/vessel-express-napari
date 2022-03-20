@@ -26,3 +26,18 @@ When you want to test on a new image, here are the steps we would recommend:
 3. Now, you can adjust the paramters if necessary. For example, if you see those "bulky" very thick and bright vessels are not fully segmented, you could reduce the *scale* in the core threshold step from 3.5 to 3 or 2.5 to capture more. If you see the segmentation does not do well on vessels relatively thick, you could add another vesselness filter with larger sigma value to improve the performance on thicker vessels. By making differey layers visible/invisible, you will be able to know how the segmentation looks by combining which layers. If you find a good combination, for example threshold_3, ves_1_70_threshold_li, ves_2_10_threshold_otsu, then make sure to re-run the merge step to generate a merged segmentation (so that you can apply post-processing on it). 
 4. After adjusting the parameters, make sure to close the layers do not belong to your final workflow (e.g., you tested the core thresholding step with scale=2.5 and scale=3, and you find scale=3 is good, make sure close the threshold_2 layer). This is meant to inform the plugin which set of functions and parameters you finally choose to use. Then click "Generate Config file" (coming soon ... not done yet).
 
+
+## Evaluation
+
+The evaluation part is designed to inspect the output from the vessel express snakemake pipeline, where in the same folder, you can find both the raw images with name XXXXX.tif (or XXXXX.tiff) and the segmentations Binary_XXXXX.tiff. After you select this folder in the selection box, the first image and its segmentation will be automatically displayed (raw image in gray with adjusted contrast and the segmentation in magenta). Then, you can choose "Good", "Failed", or "Bad Image", then click "Next". You can continue this process until the last one. At the end, click "Save", you can save the inspection results in a CSV file.
+
+
+## More tips
+
+### changing from front view to side view. 
+
+On the lower left corner of the napari window, you may two special buttons "Change the order of visible axes" (a box with an arrow pointing to the right) and "Transpose order of the last two visible axes" (a box with an arrow pointing to the left). The first one will change from front view to side view (YZ or XZ), while the second one allows to switch Y and X in front view. Note: the axes of an image has order ZYX in napari.
+
+### check skeleton visualization
+
+You can peek what the skeleton may look like by running "skeletonization" on the final segmentation layer. Note: this is only a sneak-peak. The final skeleton will go through further pruning to refine the extracted structure.
