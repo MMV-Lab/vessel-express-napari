@@ -1,10 +1,10 @@
 # vessel-express
 
-[![License](https://img.shields.io/pypi/l/vessel-express.svg?color=green)](https://github.com/MMV-Lab/vessel-express/raw/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/vessel-express.svg?color=green)](https://github.com/MMV-Lab/vessel-express-napari/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/vessel-express.svg?color=green)](https://pypi.org/project/vessel-express)
 [![Python Version](https://img.shields.io/pypi/pyversions/vessel-express.svg?color=green)](https://python.org)
-[![tests](https://github.com/MMV-Lab/vessel-express/workflows/tests/badge.svg)](https://github.com/MMV-Lab/vessel-express/actions)
-[![codecov](https://codecov.io/gh/MMV-Lab/vessel-express/branch/main/graph/badge.svg)](https://codecov.io/gh/MMV-Lab/vessel-express)
+[![tests](https://github.com/MMV-Lab/vessel-express/workflows/tests/badge.svg)](https://github.com/MMV-Lab/vessel-express-napari/actions)
+[![codecov](https://codecov.io/gh/MMV-Lab/vessel-express/branch/main/graph/badge.svg)](https://codecov.io/gh/MMV-Lab/vessel-express-napari)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express)](https://napari-hub.org/plugins/vessel-express)
 
 A simple plugin for 3D vessel segmentation of LSFM images
@@ -25,12 +25,12 @@ Or, you can install `vessel-express` via [pip]:
 
 To install latest development version :
 
-    pip install git+https://github.com/MMV-Lab/vessel-express.git
+    pip install git+https://github.com/MMV-Lab/vessel-express-napari.git
 
 
 ## Documentation
 
-We provide a [quick start guide](quick_start.md) to explain the important pieces of this plugin. Suggestions and feature quests are very welcomed. 
+We provide a [quick start guide] to explain the important pieces of this plugin. Suggestions and feature quests are very welcomed. 
 
 
 ## Contributing
@@ -58,9 +58,10 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
 
-[file an issue]: https://github.com/MMV-Lab/vessel-express/issues
+[file an issue]: https://github.com/MMV-Lab/vessel-express-napari/issues
 
 [napari]: https://github.com/napari/napari
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
+[quick start guide]: https://github.com/MMV-Lab/vessel-express-napari/quick_start.md

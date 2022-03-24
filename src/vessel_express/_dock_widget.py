@@ -154,7 +154,7 @@ class ParameterTuning(QWidget):
         self.s_sigma.setOrientation(Qt.Horizontal)
         self.s_sigma.setPageStep(2)
         self.s_gamma = QSlider() 
-        self.s_gamma.setRange(1,500)
+        self.s_gamma.setRange(1,1000)
         self.s_gamma.setValue(5)
         self.s_gamma.setOrientation(Qt.Horizontal)
         self.s_gamma.setPageStep(5)
@@ -843,10 +843,13 @@ class ParameterTuning(QWidget):
 
         elif self.c_preset.currentIndex() == 3: # Ear preset
             smooth_image = self._smoothing(preset = True, data = image)
-            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 2.5)
-            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 150, cutoff_method = "threshold_li")
-            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
-            self._cleaning(preset = True, image = merge, min_size = 100)
+            vessel1 = self._threshold(preset = True, image = smooth_image, scale = 2)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 120, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 120, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 3)
+            thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 20)
 
         elif self.c_preset.currentIndex() == 4: # Heart preset
             smooth_image = self._smoothing(preset = True, data = image)
@@ -868,9 +871,10 @@ class ParameterTuning(QWidget):
         elif self.c_preset.currentIndex() == 6: # Muscle preset
             smooth_image = self._smoothing(preset = True, data = image)
             vessel1 = self._threshold(preset = True, image = smooth_image, scale = 3.5)
-            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 70, cutoff_method = "threshold_li")
-            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
-            self._cleaning(preset = True, image = merge, min_size = 100)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 70, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 2, gamma = 90, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3 = vessel3)
+            self._cleaning(preset = True, image = merge, min_size = 20)
 
         elif self.c_preset.currentIndex() == 7: # Spinal cord preset
             smooth_image = self._smoothing(preset = True, data = image)
@@ -885,10 +889,12 @@ class ParameterTuning(QWidget):
         elif self.c_preset.currentIndex() == 8: # Tongue preset
             smooth_image = self._smoothing(preset = True, data = image)
             vessel1 = self._threshold(preset = True, image = smooth_image, scale = 4)
-            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 180, cutoff_method = "threshold_li")
-            merge = self._merge(preset = True, layers = 2, data1 = vessel1, data2 = vessel2)
-            thinned = self._thinning(preset = True, image = merge, min_thickness = 1, thin = 1)
-            self._cleaning(preset = True, image = thinned, min_size = 100)
+            vessel2 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 170, cutoff_method = "threshold_triangle")
+            vessel3 = self._vesselness(preset = True, image = smooth_image, sigma = 1, gamma = 40, cutoff_method = "threshold_li")
+            merge = self._merge(preset = True, layers = 3, data1 = vessel1, data2 = vessel2, data3=vessel3)
+            closed = self._closing(preset = True, image = merge, kernel = 3)
+            thinned = self._thinning(preset = True, image = closed, min_thickness = 1, thin = 1)
+            self._cleaning(preset = True, image = thinned, min_size = 20)
 
     """
     # This can be interesting if we decide to use the currently selected layers instead of comboboxes
