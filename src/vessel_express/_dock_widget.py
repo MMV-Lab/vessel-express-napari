@@ -808,7 +808,7 @@ class ParameterTuning(QWidget):
         runs the selected preset on the selected layer without interaction from the user necessary
         """
 
-        selected_layer = self.c_cleaning.currentText()
+        selected_layer = self.c_preset_input.currentText()
         for layer in self.viewer.layers:
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
