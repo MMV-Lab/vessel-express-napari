@@ -1,5 +1,5 @@
 
-from vessel_express import ParameterTuning
+from vessel_express import ParameterTuning, Evaluation
 import numpy as np
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
