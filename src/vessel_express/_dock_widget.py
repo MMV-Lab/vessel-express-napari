@@ -49,6 +49,9 @@ class ParameterTuning(QWidget):
         self.l_thin = QLabel("thin")
         self.l_min_size = QLabel("min_size")
         self.l_max_hole_size = QLabel("max hole size")
+        self.l_x = QLabel("X")
+        self.l_y = QLabel("Y")
+        self.l_z = QLabel("Z")
 
         # Set tooltips
         smoothing_layer_tip = (
@@ -356,6 +359,7 @@ class ParameterTuning(QWidget):
         # Zone 1 (Smoothing)
         self.h_1 = QWidget()
         self.h_1.setLayout(QHBoxLayout())
+        self.h_1.layout().addWidget(self.l_1)
         self.h_1.layout().addWidget(self.c_smoothing)
         self.h_1.layout().addWidget(self.btn_smoothing)
         self.zone_1 = QWidget()
@@ -510,13 +514,25 @@ class ParameterTuning(QWidget):
         self.zone_9.layout().addWidget(self.h_9_1)
 
         # Zone 10 (Voxel)
+        self.h_10_1 = QWidget()
+        self.h_10_1.setLayout(QHBoxLayout())
+        self.h_10_1.layout().addWidget(self.l_x)
+        self.h_10_1.layout().addWidget(self.li_x)
+        self.h_10_2 = QWidget()
+        self.h_10_2.setLayout(QHBoxLayout())
+        self.h_10_2.layout().addWidget(self.l_y)
+        self.h_10_2.layout().addWidget(self.li_y)
+        self.h_10_3 = QWidget()
+        self.h_10_3.setLayout(QHBoxLayout())
+        self.h_10_3.layout().addWidget(self.l_z)
+        self.h_10_3.layout().addWidget(self.li_z)
         self.zone_10 = QWidget()
         self.zone_10.setLayout(QVBoxLayout())
         self.zone_10.layout().addWidget(self.l_10)
         self.zone_10.layout().addWidget(self.c_isotropic)
-        self.zone_10.layout().addWidget(self.li_x)
-        self.zone_10.layout().addWidget(self.li_y)
-        self.zone_10.layout().addWidget(self.li_z)
+        self.zone_10.layout().addWidget(self.h_10_1)
+        self.zone_10.layout().addWidget(self.h_10_2)
+        self.zone_10.layout().addWidget(self.h_10_3)
         self.zone_10.layout().addWidget(self.btn_isotropic)
 
         # Merge zones
