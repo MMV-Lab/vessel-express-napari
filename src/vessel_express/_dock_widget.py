@@ -35,6 +35,7 @@ class ParameterTuning(QWidget):
         self.l_7 = QLabel("post-cleaning:")
         self.l_8 = QLabel("post-hole-removing:")
         self.l_9 = QLabel("skeletonization:")
+        self.l_10 = QLabel("voxel size (in micron):")
         self.l_scale = QLabel("scale")
         self.l_sigma = QLabel("- sigma")
         self.l_gamma = QLabel("- gamma")
@@ -117,6 +118,7 @@ class ParameterTuning(QWidget):
         self.l_7.setToolTip("Any segmented objects smaller than min_size will be removed to clean up your result.")
         self.l_8.setToolTip("remove small holes in the segmentation to avoid loops in skeleton")
         self.l_9.setToolTip("show skeleton")
+        #TODO: add tooltip for l_10 (voxel)
         
         core_thresh_scale_tip = (
             "Larger value will result in higher threshold value,\n"
@@ -143,10 +145,12 @@ class ParameterTuning(QWidget):
         self.l_max_hole_size.setToolTip("the maximum size of holes to be filled")
 
         # Line Edits
-        self.li_readable = QLineEdit()
+        self.li_x = QLineEdit()
+        self.li_y = QLineEdit()
+        self.li_z = QLineEdit()
 
         # Call Function on pressing enter in the LineEdit
-        self.li_readable.returnPressed.connect(self._readable_test)
+        # self.li_readable.returnPressed.connect(self._readable_test)
 
         # Sliders
         self.s_scale = QSlider()    # DOUBLED TO MAKE INT WORK
@@ -221,6 +225,7 @@ class ParameterTuning(QWidget):
         # Buttons
         self.btn_preset = QPushButton("Run Preset")
         self.btn_smoothing = QPushButton("Run")
+        self.btn_isotropic = QPushButton("Make Isotropic")
         self.btn_threshold = QPushButton("Run")
         self.btn_vesselness = QPushButton("Run")
         self.btn_merge = QPushButton("Run")
@@ -233,6 +238,7 @@ class ParameterTuning(QWidget):
         # Add functions to buttons
         self.btn_preset.clicked.connect(self._run_preset)
         self.btn_smoothing.clicked.connect(self._smoothing)
+        self.btn_isotropic.clicked.connect(self._isotropic)
         self.btn_threshold.clicked.connect(self._threshold)
         self.btn_vesselness.clicked.connect(self._vesselness)
         self.btn_merge.clicked.connect(self._merge)
@@ -271,10 +277,10 @@ class ParameterTuning(QWidget):
         self.line_7.setFixedHeight(4)
         self.line_7.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_7.setStyleSheet("background-color: #c0c0c0")
-        """self.line_8 = QWidget()
+        self.line_8 = QWidget()
         self.line_8.setFixedHeight(4)
         self.line_8.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
-        self.line_8.setStyleSheet("background-color: #c0c0c0")"""
+        self.line_8.setStyleSheet("background-color: #c0c0c0")
 
         # Combo boxes
         self.c_preset = QComboBox()
@@ -289,6 +295,7 @@ class ParameterTuning(QWidget):
         self.c_preset.addItem("Tongue")
         self.c_preset_input = QComboBox()
         self.c_smoothing = QComboBox()
+        self.c_isotropic = QComboBox()
         self.c_threshold = QComboBox()
         self.c_vesselness = QComboBox()
         self.c_operation_dim = QComboBox()
@@ -310,6 +317,7 @@ class ParameterTuning(QWidget):
         self.list_comboboxes = [
             self.c_preset_input,
             self.c_smoothing,
+            self.c_isotropic,
             self.c_threshold,
             self.c_vesselness,
             self.c_merge_1,
@@ -345,17 +353,16 @@ class ParameterTuning(QWidget):
         self.zone_0.layout().addWidget(self.h_0_2)
         self.zone_0.layout().addWidget(self.btn_preset)
 
-        # Zone 1
+        # Zone 1 (Smoothing)
         self.h_1 = QWidget()
         self.h_1.setLayout(QHBoxLayout())
-        self.h_1.layout().addWidget(self.l_1)
         self.h_1.layout().addWidget(self.c_smoothing)
         self.h_1.layout().addWidget(self.btn_smoothing)
         self.zone_1 = QWidget()
         self.zone_1.setLayout(QVBoxLayout())
         self.zone_1.layout().addWidget(self.h_1)
 
-        # Zone 2
+        # Zone 2 (Core-Threshold)
         self.h_2_1 = QWidget()
         self.h_2_1.setLayout(QHBoxLayout())
         self.h_2_1.layout().addWidget(self.l_2)
@@ -371,7 +378,7 @@ class ParameterTuning(QWidget):
         self.zone_2.layout().addWidget(self.h_2_1)
         self.zone_2.layout().addWidget(self.h_2_2)
 
-        # Zone 3
+        # Zone 3 (Veselness)
         self.h_3_1 = QWidget()
         self.h_3_1.setLayout(QHBoxLayout())
         self.h_3_1.layout().addWidget(self.l_3)
@@ -398,7 +405,7 @@ class ParameterTuning(QWidget):
         self.zone_3.layout().addWidget(self.h_3_3)
         self.zone_3.layout().addWidget(self.h_3_4)
 
-        # Zone 4
+        # Zone 4 (Merging)
         self.h_4_1 = QWidget()
         self.h_4_1.setLayout(QHBoxLayout())
         self.h_4_1.layout().addWidget(self.l_4)
@@ -422,7 +429,7 @@ class ParameterTuning(QWidget):
         self.zone_4.layout().addWidget(self.h_4_3)
         self.zone_4.layout().addWidget(self.h_4_4)
 
-        # Zone 5
+        # Zone 5 (Closing)
         self.h_5_1 = QWidget()
         self.h_5_1.setLayout(QHBoxLayout())
         self.h_5_1.layout().addWidget(self.l_5)
@@ -438,7 +445,7 @@ class ParameterTuning(QWidget):
         self.zone_5.layout().addWidget(self.h_5_1)
         self.zone_5.layout().addWidget(self.h_5_2)
 
-        # Zone 6
+        # Zone 6 (Thinning)
         self.h_6_1 = QWidget()
         self.h_6_1.setLayout(QHBoxLayout())
         self.h_6_1.layout().addWidget(self.l_6)
@@ -460,7 +467,7 @@ class ParameterTuning(QWidget):
         self.zone_6.layout().addWidget(self.h_6_2)
         self.zone_6.layout().addWidget(self.h_6_3)
 
-        # Zone 7
+        # Zone 7 (Cleaining)
         self.h_7_1 = QWidget()
         self.h_7_1.setLayout(QHBoxLayout())
         self.h_7_1.layout().addWidget(self.l_7)
@@ -476,7 +483,7 @@ class ParameterTuning(QWidget):
         self.zone_7.layout().addWidget(self.h_7_1)
         self.zone_7.layout().addWidget(self.h_7_2)
 
-        # Zone 8
+        # Zone 8 (Hole-Closing)
         self.h_8_1 = QWidget()
         self.h_8_1.setLayout(QHBoxLayout())
         self.h_8_1.layout().addWidget(self.l_8)
@@ -492,7 +499,7 @@ class ParameterTuning(QWidget):
         self.zone_8.layout().addWidget(self.h_8_1)
         self.zone_8.layout().addWidget(self.h_8_2)
 
-        # Zone 9
+        # Zone 9 (Skeletonization)
         self.h_9_1 = QWidget()
         self.h_9_1.setLayout(QHBoxLayout())
         self.h_9_1.layout().addWidget(self.l_9)
@@ -502,11 +509,22 @@ class ParameterTuning(QWidget):
         self.zone_9.setLayout(QVBoxLayout())
         self.zone_9.layout().addWidget(self.h_9_1)
 
+        # Zone 10 (Voxel)
+        self.zone_10 = QWidget()
+        self.zone_10.setLayout(QVBoxLayout())
+        self.zone_10.layout().addWidget(self.l_10)
+        self.zone_10.layout().addWidget(self.c_isotropic)
+        self.zone_10.layout().addWidget(self.li_x)
+        self.zone_10.layout().addWidget(self.li_y)
+        self.zone_10.layout().addWidget(self.li_z)
+        self.zone_10.layout().addWidget(self.btn_isotropic)
+
         # Merge zones
         self.zone_pre = QWidget()
         self.zone_pre.setLayout(QVBoxLayout())
         self.zone_pre.layout().addWidget(self.zone_1)
         self.zone_pre.layout().addWidget(self.line_1)
+        self.zone_pre.layout().addWidget(self.zone_10)
 
         self.zone_core = QWidget()
         self.zone_core.setLayout(QVBoxLayout())
@@ -541,7 +559,6 @@ class ParameterTuning(QWidget):
         self.content.layout().addWidget(self.l_title)
         self.content.layout().addWidget(self.t_collapse)
         self.content.layout().addWidget(self.zone_9)
-        self.content.layout().addWidget(self.li_readable)
         self.no_scroll_area = QWidget()
         self.no_scroll_area.setLayout(QVBoxLayout())
         self.no_scroll_area.layout().addWidget(self.content)
@@ -551,8 +568,8 @@ class ParameterTuning(QWidget):
         self.layout().addWidget(self.no_scroll_area)
 
     # LinEdit functions
-    def _readable_test(self):
-        print('The LineEdit reads "' + self.li_readable.displayText() + '"')
+    #def _readable_test(self):
+    #    print('The LineEdit reads "' + self.li_readable.displayText() + '"')
 
     # Slider update functions
     def _update_scale(self):
@@ -595,6 +612,19 @@ class ParameterTuning(QWidget):
         self.viewer.add_image(data = out, name = "smoothed_Image")
         if preset:
             return out
+
+    def _isotropic(self):
+        from skimage.transform import rescale
+        selected_layer = self.c_isotropic.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        x = int(self.li_x.displayText())
+        y = int(self.li_y.displayText())
+        z = int(self.li_z.displayText())
+        out = rescale(image, scale=(x/z, y/z, 1), order=1)
+        self.viewer.add_image(data = out, name = f"isotropic_{x}_{y}_{z}", blending="additive")
 
     def _threshold(self, preset = False, image = "", scale = 0):   # HALVE VALUE
         """
