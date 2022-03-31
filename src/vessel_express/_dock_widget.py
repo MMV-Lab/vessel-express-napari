@@ -636,10 +636,11 @@ class ParameterTuning(QWidget):
             if layer.name == selected_layer and type(layer) == Image:
                 image = layer.data
                 break
-        x = int(self.li_x.displayText())
-        y = int(self.li_y.displayText())
-        z = int(self.li_z.displayText())
-        out = rescale(image, scale=(x/z, y/z, 1), order=1)
+        x = float(self.li_x.displayText())
+        y = float(self.li_y.displayText())
+        z = float(self.li_z.displayText())
+        largest_dim = max(1/x, 1/y, 1/z)
+        out = rescale(image, scale=(z * largest_dim, y * largest_dim, x * largest_dim), order=1)
         self.viewer.add_image(data = out, name = f"isotropic_{x}_{y}_{z}", blending="additive")
 
     def _threshold(self, preset = False, image = "", scale = 0):   # HALVE VALUE
