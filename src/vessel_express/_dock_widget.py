@@ -1,5 +1,5 @@
+from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit
 from inspect import CORO_CLOSED
-from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy
 import napari
 from napari_plugin_engine import napari_hook_implementation
 from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox
@@ -35,6 +35,7 @@ class ParameterTuning(QWidget):
         self.l_7 = QLabel("post-cleaning:")
         self.l_8 = QLabel("post-hole-removing:")
         self.l_9 = QLabel("skeletonization:")
+        self.l_10 = QLabel("voxel size (in micron):")
         self.l_scale = QLabel("scale")
         self.l_sigma = QLabel("- sigma")
         self.l_gamma = QLabel("- gamma")
@@ -48,6 +49,9 @@ class ParameterTuning(QWidget):
         self.l_thin = QLabel("thin")
         self.l_min_size = QLabel("min_size")
         self.l_max_hole_size = QLabel("max hole size")
+        self.l_x = QLabel("X")
+        self.l_y = QLabel("Y")
+        self.l_z = QLabel("Z")
 
         # Set tooltips
         smoothing_layer_tip = (
@@ -117,6 +121,7 @@ class ParameterTuning(QWidget):
         self.l_7.setToolTip("Any segmented objects smaller than min_size will be removed to clean up your result.")
         self.l_8.setToolTip("remove small holes in the segmentation to avoid loops in skeleton")
         self.l_9.setToolTip("show skeleton")
+        #TODO: add tooltip for l_10 (voxel)
         
         core_thresh_scale_tip = (
             "Larger value will result in higher threshold value,\n"
@@ -141,6 +146,14 @@ class ParameterTuning(QWidget):
         self.l_thin.setToolTip("How many pixels to thin your vessels by.")
         self.l_min_size.setToolTip("The minimum size of segmented objects to keep.")
         self.l_max_hole_size.setToolTip("the maximum size of holes to be filled")
+
+        # Line Edits
+        self.li_x = QLineEdit()
+        self.li_y = QLineEdit()
+        self.li_z = QLineEdit()
+
+        # Call Function on pressing enter in the LineEdit
+        # self.li_readable.returnPressed.connect(self._readable_test)
 
         # Sliders
         self.s_scale = QSlider()    # DOUBLED TO MAKE INT WORK
@@ -215,6 +228,7 @@ class ParameterTuning(QWidget):
         # Buttons
         self.btn_preset = QPushButton("Run Preset")
         self.btn_smoothing = QPushButton("Run")
+        self.btn_isotropic = QPushButton("Make Isotropic")
         self.btn_threshold = QPushButton("Run")
         self.btn_vesselness = QPushButton("Run")
         self.btn_merge = QPushButton("Run")
@@ -227,6 +241,7 @@ class ParameterTuning(QWidget):
         # Add functions to buttons
         self.btn_preset.clicked.connect(self._run_preset)
         self.btn_smoothing.clicked.connect(self._smoothing)
+        self.btn_isotropic.clicked.connect(self._isotropic)
         self.btn_threshold.clicked.connect(self._threshold)
         self.btn_vesselness.clicked.connect(self._vesselness)
         self.btn_merge.clicked.connect(self._merge)
@@ -242,7 +257,7 @@ class ParameterTuning(QWidget):
         self.line_1.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_1.setStyleSheet("background-color: #c0c0c0")
         self.line_2 = QWidget()
-        self.line_2.setFixedHeight(2)
+        self.line_2.setFixedHeight(4)
         self.line_2.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Fixed)
         self.line_2.setStyleSheet("background-color: #c0c0c0")
         self.line_3 = QWidget()
@@ -283,6 +298,7 @@ class ParameterTuning(QWidget):
         self.c_preset.addItem("Tongue")
         self.c_preset_input = QComboBox()
         self.c_smoothing = QComboBox()
+        self.c_isotropic = QComboBox()
         self.c_threshold = QComboBox()
         self.c_vesselness = QComboBox()
         self.c_operation_dim = QComboBox()
@@ -304,6 +320,7 @@ class ParameterTuning(QWidget):
         self.list_comboboxes = [
             self.c_preset_input,
             self.c_smoothing,
+            self.c_isotropic,
             self.c_threshold,
             self.c_vesselness,
             self.c_merge_1,
@@ -339,7 +356,7 @@ class ParameterTuning(QWidget):
         self.zone_0.layout().addWidget(self.h_0_2)
         self.zone_0.layout().addWidget(self.btn_preset)
 
-        # Zone 1
+        # Zone 1 (Smoothing)
         self.h_1 = QWidget()
         self.h_1.setLayout(QHBoxLayout())
         self.h_1.layout().addWidget(self.l_1)
@@ -349,7 +366,7 @@ class ParameterTuning(QWidget):
         self.zone_1.setLayout(QVBoxLayout())
         self.zone_1.layout().addWidget(self.h_1)
 
-        # Zone 2
+        # Zone 2 (Core-Threshold)
         self.h_2_1 = QWidget()
         self.h_2_1.setLayout(QHBoxLayout())
         self.h_2_1.layout().addWidget(self.l_2)
@@ -365,7 +382,7 @@ class ParameterTuning(QWidget):
         self.zone_2.layout().addWidget(self.h_2_1)
         self.zone_2.layout().addWidget(self.h_2_2)
 
-        # Zone 3
+        # Zone 3 (Veselness)
         self.h_3_1 = QWidget()
         self.h_3_1.setLayout(QHBoxLayout())
         self.h_3_1.layout().addWidget(self.l_3)
@@ -392,7 +409,7 @@ class ParameterTuning(QWidget):
         self.zone_3.layout().addWidget(self.h_3_3)
         self.zone_3.layout().addWidget(self.h_3_4)
 
-        # Zone 4
+        # Zone 4 (Merging)
         self.h_4_1 = QWidget()
         self.h_4_1.setLayout(QHBoxLayout())
         self.h_4_1.layout().addWidget(self.l_4)
@@ -416,7 +433,7 @@ class ParameterTuning(QWidget):
         self.zone_4.layout().addWidget(self.h_4_3)
         self.zone_4.layout().addWidget(self.h_4_4)
 
-        # Zone 5
+        # Zone 5 (Closing)
         self.h_5_1 = QWidget()
         self.h_5_1.setLayout(QHBoxLayout())
         self.h_5_1.layout().addWidget(self.l_5)
@@ -432,7 +449,7 @@ class ParameterTuning(QWidget):
         self.zone_5.layout().addWidget(self.h_5_1)
         self.zone_5.layout().addWidget(self.h_5_2)
 
-        # Zone 6
+        # Zone 6 (Thinning)
         self.h_6_1 = QWidget()
         self.h_6_1.setLayout(QHBoxLayout())
         self.h_6_1.layout().addWidget(self.l_6)
@@ -454,7 +471,7 @@ class ParameterTuning(QWidget):
         self.zone_6.layout().addWidget(self.h_6_2)
         self.zone_6.layout().addWidget(self.h_6_3)
 
-        # Zone 7
+        # Zone 7 (Cleaining)
         self.h_7_1 = QWidget()
         self.h_7_1.setLayout(QHBoxLayout())
         self.h_7_1.layout().addWidget(self.l_7)
@@ -470,7 +487,7 @@ class ParameterTuning(QWidget):
         self.zone_7.layout().addWidget(self.h_7_1)
         self.zone_7.layout().addWidget(self.h_7_2)
 
-        # Zone 8
+        # Zone 8 (Hole-Closing)
         self.h_8_1 = QWidget()
         self.h_8_1.setLayout(QHBoxLayout())
         self.h_8_1.layout().addWidget(self.l_8)
@@ -486,7 +503,7 @@ class ParameterTuning(QWidget):
         self.zone_8.layout().addWidget(self.h_8_1)
         self.zone_8.layout().addWidget(self.h_8_2)
 
-        # Zone 9
+        # Zone 9 (Skeletonization)
         self.h_9_1 = QWidget()
         self.h_9_1.setLayout(QHBoxLayout())
         self.h_9_1.layout().addWidget(self.l_9)
@@ -496,34 +513,79 @@ class ParameterTuning(QWidget):
         self.zone_9.setLayout(QVBoxLayout())
         self.zone_9.layout().addWidget(self.h_9_1)
 
+        # Zone 10 (Voxel)
+        self.h_10_1 = QWidget()
+        self.h_10_1.setLayout(QHBoxLayout())
+        self.h_10_1.layout().addWidget(self.l_x)
+        self.h_10_1.layout().addWidget(self.li_x)
+        self.h_10_2 = QWidget()
+        self.h_10_2.setLayout(QHBoxLayout())
+        self.h_10_2.layout().addWidget(self.l_y)
+        self.h_10_2.layout().addWidget(self.li_y)
+        self.h_10_3 = QWidget()
+        self.h_10_3.setLayout(QHBoxLayout())
+        self.h_10_3.layout().addWidget(self.l_z)
+        self.h_10_3.layout().addWidget(self.li_z)
+        self.zone_10 = QWidget()
+        self.zone_10.setLayout(QVBoxLayout())
+        self.zone_10.layout().addWidget(self.l_10)
+        self.zone_10.layout().addWidget(self.c_isotropic)
+        self.zone_10.layout().addWidget(self.h_10_1)
+        self.zone_10.layout().addWidget(self.h_10_2)
+        self.zone_10.layout().addWidget(self.h_10_3)
+        self.zone_10.layout().addWidget(self.btn_isotropic)
+
+        # Merge zones
+        self.zone_pre = QWidget()
+        self.zone_pre.setLayout(QVBoxLayout())
+        self.zone_pre.layout().addWidget(self.zone_1)
+        self.zone_pre.layout().addWidget(self.line_1)
+        self.zone_pre.layout().addWidget(self.zone_10)
+
+        self.zone_core = QWidget()
+        self.zone_core.setLayout(QVBoxLayout())
+        self.zone_core.layout().addWidget(self.zone_2)
+        self.zone_core.layout().addWidget(self.line_2)
+        self.zone_core.layout().addWidget(self.zone_3)
+        self.zone_core.layout().addWidget(self.line_3)
+        self.zone_core.layout().addWidget(self.zone_4)
+        
+        self.zone_post = QWidget()
+        self.zone_post.setLayout(QVBoxLayout())
+        self.zone_post.layout().addWidget(self.zone_5)
+        self.zone_post.layout().addWidget(self.line_4)
+        self.zone_post.layout().addWidget(self.zone_6)
+        self.zone_post.layout().addWidget(self.line_5)
+        self.zone_post.layout().addWidget(self.zone_7)
+        self.zone_post.layout().addWidget(self.line_6)
+        self.zone_post.layout().addWidget(self.zone_8)
+        #self.zone_post.layout().addWidget(self.line_7)
+        #self.zone_post.layout().addWidget(self.zone_9)
+
+        # Putting zones in collapsible toolbox areas
+        self.t_collapse = QToolBox()
+        self.t_collapse.addItem(self.zone_pre, "pre-processing")
+        self.t_collapse.addItem(self.zone_core, "core-segmentation")
+        self.t_collapse.addItem(self.zone_post, "post-processing")
+        self.t_collapse.addItem(self.zone_0, "presets")
+
         # Layouting
         self.content = QWidget()
         self.content.setLayout(QVBoxLayout())
-        self.content.layout().addWidget(self.zone_0)
         self.content.layout().addWidget(self.l_title)
-        self.content.layout().addWidget(self.zone_1)
-        self.content.layout().addWidget(self.line_1)
-        self.content.layout().addWidget(self.zone_2)
-        self.content.layout().addWidget(self.line_2)
-        self.content.layout().addWidget(self.zone_3)
-        self.content.layout().addWidget(self.line_3)
-        self.content.layout().addWidget(self.zone_4)
-        self.content.layout().addWidget(self.line_4)
-        self.content.layout().addWidget(self.zone_5)
-        self.content.layout().addWidget(self.line_5)
-        self.content.layout().addWidget(self.zone_6)
-        self.content.layout().addWidget(self.line_6)
-        self.content.layout().addWidget(self.zone_7)
-        self.content.layout().addWidget(self.line_7)
-        self.content.layout().addWidget(self.zone_8)
-        self.content.layout().addWidget(self.line_8)
+        self.content.layout().addWidget(self.t_collapse)
         self.content.layout().addWidget(self.zone_9)
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.content)
+        self.no_scroll_area = QWidget()
+        self.no_scroll_area.setLayout(QVBoxLayout())
+        self.no_scroll_area.layout().addWidget(self.content)
 
         # Setting layout
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self.scroll_area)
+        self.layout().addWidget(self.no_scroll_area)
+
+    # LinEdit functions
+    #def _readable_test(self):
+    #    print('The LineEdit reads "' + self.li_readable.displayText() + '"')
 
     # Slider update functions
     def _update_scale(self):
@@ -566,6 +628,20 @@ class ParameterTuning(QWidget):
         self.viewer.add_image(data = out, name = "smoothed_Image")
         if preset:
             return out
+
+    def _isotropic(self):
+        from skimage.transform import rescale
+        selected_layer = self.c_isotropic.currentText()
+        for layer in self.viewer.layers:
+            if layer.name == selected_layer and type(layer) == Image:
+                image = layer.data
+                break
+        x = float(self.li_x.displayText())
+        y = float(self.li_y.displayText())
+        z = float(self.li_z.displayText())
+        largest_dim = max(1/x, 1/y, 1/z)
+        out = rescale(image, scale=(z * largest_dim, y * largest_dim, x * largest_dim), order=1)
+        self.viewer.add_image(data = out, name = f"isotropic_{x}_{y}_{z}", blending="additive")
 
     def _threshold(self, preset = False, image = "", scale = 0):   # HALVE VALUE
         """
@@ -707,6 +783,32 @@ class ParameterTuning(QWidget):
         self.viewer.add_image(data = out, name = f"hole_filled_{max_size}", blending="additive")
         if preset:
             return out
+    
+    def _hole_removal(self, preset = False, image = "", max_size = 0):
+        """
+        remove small holes in segmentation
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+        max_size: int
+            the max hole size to remove
+        Return
+        -------------
+        np.ndarray
+        """
+        from aicssegmentation.core.utils import hole_filling
+        if not preset:
+            selected_layer = self.c_hole.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+            max_size = self.s_max_hole_size.value()
+        out = hole_filling(image, hole_min=1, hole_max=max_size, fill_2d=True)
+        self.viewer.add_image(data = out, name = "filled_holes_seg", blending="additive")
+        if preset:
+            return out
 
     def _thinning(self, preset = False, image ="", min_thickness = 0, thin = 0):    # HALVE ONE VALUE
         """
@@ -761,6 +863,32 @@ class ParameterTuning(QWidget):
             min_size = self.s_min_size.value()
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = f"cleaned_{min_size}", blending="additive")
+
+    def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
+        """
+        perform skeletonization
+
+        Parameters:
+        -------------
+        image: np.ndarray
+            the image to be applied on
+
+        Return
+        -------------
+        np.ndarray
+        """
+        from skimage.morphology import skeletonize_3d
+        if not preset:
+            selected_layer = self.c_skeleton.currentText()
+            for layer in self.viewer.layers:
+                if layer.name == selected_layer and type(layer) == Image:
+                    image = layer.data
+                    break
+        out = skeletonize_3d(image > 0)
+
+        self.viewer.add_image(data = out, name = "skeleton", blending="additive")
+        if preset:
+            return out
 
     def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
         """
