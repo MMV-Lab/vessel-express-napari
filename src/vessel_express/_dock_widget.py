@@ -1,8 +1,7 @@
-from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit
 from inspect import CORO_CLOSED
 import napari
 from napari_plugin_engine import napari_hook_implementation
-from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox
+from qtpy.QtWidgets import QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox, QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit
 from qtpy.QtCore import Qt
 from napari.layers import Image
 from tifffile import imread
