@@ -9,9 +9,9 @@
 
 A simple plugin for 3D vessel segmentation of LSFM images
 
-----------------------------------
+This [napari] plugin can be used to optimize the segmentation parameters for the [main VesselExpress software platform](https://github.com/RUB-Bioinf/VesselExpress).
 
-This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
+----------------------------------
 
 
 ## Installation
