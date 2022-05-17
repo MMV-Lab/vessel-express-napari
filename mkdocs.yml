@@ -1,11 +1,11 @@
-site_name: vessel-express
-site_description: A simple plugin to use with napari
-site_author: lennart kowitz
+site_name: vessel-express-napari
+site_description: A simple plugin for 3D vessel segmentation of LSFM images
+site_author: Lennart Kowitz
 
 theme: readthedocs
 
 
-repo_url: https://github.com/MMV-Lab/vessel-express
+repo_url: https://github.com/MMV-Lab/vessel-express-napari
 
 pages:
 - Home: index.md

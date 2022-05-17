@@ -4,7 +4,7 @@
 
 The plugin is designed for obtaining accurate vessel segmentation from 3D lightsheet fluorescent images. Overall, the plugin is organized as follows:
 
-vessel-express
+vessel-express-napari
     |
     |--> Parameter Tuning
     |--> Evaluation 

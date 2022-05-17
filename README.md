@@ -1,11 +1,11 @@
-# vessel-express
+# vessel-express-napari
 
-[![License](https://img.shields.io/pypi/l/vessel-express.svg?color=green)](https://github.com/MMV-Lab/vessel-express-napari/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/vessel-express.svg?color=green)](https://pypi.org/project/vessel-express)
-[![Python Version](https://img.shields.io/pypi/pyversions/vessel-express.svg?color=green)](https://python.org)
-[![tests](https://github.com/MMV-Lab/vessel-express/workflows/tests/badge.svg)](https://github.com/MMV-Lab/vessel-express-napari/actions)
-[![codecov](https://codecov.io/gh/MMV-Lab/vessel-express/branch/main/graph/badge.svg)](https://codecov.io/gh/MMV-Lab/vessel-express-napari)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express)](https://napari-hub.org/plugins/vessel-express)
+[![License](https://img.shields.io/pypi/l/vessel-express-napari.svg?color=green)](https://github.com/MMV-Lab/vessel-express-napari/raw/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/vessel-express-napari.svg?color=green)](https://pypi.org/project/vessel-express)
+[![Python Version](https://img.shields.io/pypi/pyversions/vessel-express-napari.svg?color=green)](https://python.org)
+[![tests](https://github.com/MMV-Lab/vessel-express-napari/workflows/tests/badge.svg)](https://github.com/MMV-Lab/vessel-express-napari/actions)
+[![codecov](https://codecov.io/gh/MMV-Lab/vessel-express-napari/branch/main/graph/badge.svg)](https://codecov.io/gh/MMV-Lab/vessel-express-napari)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express-napari)](https://napari-hub.org/plugins/vessel-express)
 
 A simple plugin for 3D vessel segmentation of LSFM images
 
@@ -16,11 +16,11 @@ This [napari] plugin can be used to optimize the segmentation parameters for the
 
 ## Installation
 
-The easiest way to install the plugin is to open napari, go to Plugins, then Install/Uninstall plugins. You will be able to find the plugin by name "vessel-express". 
+The easiest way to install the plugin is to open napari, go to Plugins, then Install/Uninstall plugins. You will be able to find the plugin by name "vessel-express-napari". 
 
-Or, you can install `vessel-express` via [pip]:
+Or, you can install `vessel-express-napari` via [pip]:
 
-    pip install vessel-express
+    pip install vessel-express-napari
 
 
 To install latest development version :
@@ -41,7 +41,7 @@ the coverage at least stays the same before you submit a pull request.
 ## License
 
 Distributed under the terms of the [BSD-3] license,
-"vessel-express" is free and open source software
+"vessel-express-napari" is free and open source software
 
 ## Issues
 

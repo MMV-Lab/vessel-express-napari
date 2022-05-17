@@ -1,3 +1,3 @@
-# Welcome to vessel-express
+# Welcome to vessel-express-napari
 
-A simple plugin for vessel segmentation and analysis with napari
+A simple plugin for 3D vessel segmentation of LSFM images with napari
