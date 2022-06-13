@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit
+from qtpy.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit
 from inspect import CORO_CLOSED
 import napari
 from napari_plugin_engine import napari_hook_implementation
