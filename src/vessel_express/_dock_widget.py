@@ -538,9 +538,9 @@ class ParameterTuning(QWidget):
         # Merge zones
         self.zone_pre = QWidget()
         self.zone_pre.setLayout(QVBoxLayout())
-        self.zone_pre.layout().addWidget(self.zone_1)
-        self.zone_pre.layout().addWidget(self.line_1)
         self.zone_pre.layout().addWidget(self.zone_10)
+        self.zone_pre.layout().addWidget(self.line_1)
+        self.zone_pre.layout().addWidget(self.zone_1)
 
         self.zone_core = QWidget()
         self.zone_core.setLayout(QVBoxLayout())
