@@ -701,6 +701,7 @@ class ParameterTuning(QWidget):
             gamma = self.s_gamma.value()
             cutoff_method = self.c_cutoff_method.currentText()
         out = vesselness_filter(image, dim, sigma, gamma, cutoff_method)
+        out = 1 * out
         self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}", blending="additive")
         if preset:
             return out
