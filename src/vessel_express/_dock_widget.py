@@ -865,6 +865,8 @@ class ParameterTuning(QWidget):
             min_size = self.s_min_size.value()
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = f"cleaned_{min_size}", blending="additive")
+        if preset:
+            return out
 
     def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
         """

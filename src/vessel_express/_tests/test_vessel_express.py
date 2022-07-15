@@ -142,3 +142,58 @@ def test_closing(make_napari_viewer):
 
     image2 = para_tuning._closing(preset = True, image = image1, kernel = 5)
     assert np.array_equal(image2, image3)
+
+@pytest.mark.hole_removal
+def test_hole_removal(make_napari_viewer):
+    viewer = make_napari_viewer()
+    para_tuning = ParameterTuning(viewer)
+
+    file1 = 'vessel_express\\_tests\\images\\closing.npy'
+    file3 = 'vessel_express\\_tests\\images\\hole_removal.npy'
+    image1 = np.load(file1)
+    image3 = np.load(file3)
+
+    image2 = para_tuning._hole_removal(preset = True, image = image1,
+        max_size = 10)
+    assert np.array_equal(image2, image3)
+
+@pytest.mark.thinning
+def test_thinning(make_napari_viewer):
+    viewer = make_napari_viewer()
+    para_tuning = ParameterTuning(viewer)
+
+    file1 = 'vessel_express\\_tests\\images\\hole_removal.npy'
+    file3 = 'vessel_express\\_tests\\images\\thinning.npy'
+    image1 = np.load(file1)
+    image3 = np.load(file3)
+
+    image2 = para_tuning._thinning(preset = True, image = image1,
+        min_thickness = 1, thin = 1)
+    assert np.array_equal(image2, image3)
+
+@pytest.mark.cleaning
+def test_cleaning(make_napari_viewer):
+    viewer = make_napari_viewer()
+    para_tuning = ParameterTuning(viewer)
+
+    file1 = 'vessel_express\\_tests\\images\\thinning.npy'
+    file3 = 'vessel_express\\_tests\\images\\cleaning.npy'
+    image1 = np.load(file1)
+    image3 = np.load(file3)
+
+    image2 = para_tuning._cleaning(preset = True, image = image1,
+        min_size = 100)
+    assert np.array_equal(image2, image3)
+
+@pytest.mark.skeleton
+def test_skeleton(make_napari_viewer):
+    viewer = make_napari_viewer()
+    para_tuning = ParameterTuning(viewer)
+
+    file1 = 'vessel_express\\_tests\\images\\cleaning.npy'
+    file3 = 'vessel_express\\_tests\\images\\skeleton.npy'
+    image1 = np.load(file1)
+    image3 = np.load(file3)
+
+    image2 = para_tuning._skeleton(preset = True, image = image1)
+    assert np.array_equal(image2, image3)
