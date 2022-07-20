@@ -19,6 +19,7 @@ def test_smoothing(make_napari_viewer):
 
 @pytest.mark.add_image
 def test_add_image(make_napari_viewer):
+    # 05.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -39,6 +40,7 @@ def test_add_image(make_napari_viewer):
 
 @pytest.mark.isotropic
 def test_isotropic(make_napari_viewer):
+    # 06.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -66,6 +68,7 @@ def test_isotropic(make_napari_viewer):
 
 @pytest.mark.threshold
 def test_threshold(make_napari_viewer):
+    # 08.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -79,6 +82,7 @@ def test_threshold(make_napari_viewer):
 
 @pytest.mark.vesselness
 def test_vesselness(make_napari_viewer):
+    # 12.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -105,6 +109,7 @@ def test_vesselness(make_napari_viewer):
 
 @pytest.mark.merge
 def test_merge(make_napari_viewer):
+    # 14.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -132,6 +137,7 @@ def test_merge(make_napari_viewer):
 
 @pytest.mark.closing
 def test_closing(make_napari_viewer):
+    # 14.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -145,6 +151,7 @@ def test_closing(make_napari_viewer):
 
 @pytest.mark.hole_removal
 def test_hole_removal(make_napari_viewer):
+    # 15.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -159,6 +166,7 @@ def test_hole_removal(make_napari_viewer):
 
 @pytest.mark.thinning
 def test_thinning(make_napari_viewer):
+    # 15.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -173,6 +181,7 @@ def test_thinning(make_napari_viewer):
 
 @pytest.mark.cleaning
 def test_cleaning(make_napari_viewer):
+    # 15.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
@@ -187,6 +196,7 @@ def test_cleaning(make_napari_viewer):
 
 @pytest.mark.skeleton
 def test_skeleton(make_napari_viewer):
+    # 15.07.2022
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
