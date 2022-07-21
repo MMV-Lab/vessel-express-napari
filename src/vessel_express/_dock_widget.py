@@ -667,6 +667,7 @@ class ParameterTuning(QWidget):
             scale = self.s_scale.value()/2
         thresh = image.mean() + scale * image.std()
         out = image > thresh
+        out = 1 * out       # convert from bool to int
         self.viewer.add_image(data = out, name = f"threshold_{scale}", blending="additive")
         if preset:
             return out
@@ -700,6 +701,7 @@ class ParameterTuning(QWidget):
             gamma = self.s_gamma.value()
             cutoff_method = self.c_cutoff_method.currentText()
         out = vesselness_filter(image, dim, sigma, gamma, cutoff_method)
+        out = 1 * out
         self.viewer.add_image(data = out, name = f"ves_{sigma}_{gamma}_{cutoff_method}", blending="additive")
         if preset:
             return out
@@ -863,6 +865,8 @@ class ParameterTuning(QWidget):
             min_size = self.s_min_size.value()
         out = remove_small_objects(image > 0, min_size)
         self.viewer.add_image(data = out, name = f"cleaned_{min_size}", blending="additive")
+        if preset:
+            return out
 
     def _skeleton(self, preset = False, image =""):    # HALVE ONE VALUE
         """
