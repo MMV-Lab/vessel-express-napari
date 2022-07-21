@@ -9,8 +9,8 @@ def test_smoothing(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)     # 1. Objekt dieser Klasse
 
-    file1 = 'vessel_express\\_tests\\images\\Raw_liver_1.tiff'
-    file3 = 'vessel_express\\_tests\\images\\smoothing.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\Raw_liver_1.tiff'
+    file3 = 'src\\vessel_express\\_tests\\images\\smoothing.npy'
     image1 = imread(file1)
     image3 = np.load(file3)
 
@@ -23,7 +23,7 @@ def test_add_image(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\Raw_liver_1.tiff'
+    file1 = 'src\\vessel_express\\_tests\\images\\Raw_liver_1.tiff'
     image1 = imread(file1)
 
     viewer.add_image(data=image1, name='Raw_liver_1')
@@ -44,8 +44,8 @@ def test_isotropic(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\Raw_liver_1.tiff'
-    file3 = 'vessel_express\\_tests\\images\\isotropic.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\Raw_liver_1.tiff'
+    file3 = 'src\\vessel_express\\_tests\\images\\isotropic.npy'
     image1 = imread(file1)
     image3 = np.load(file3)
     
@@ -72,8 +72,8 @@ def test_threshold(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\Raw_liver_1.tiff'
-    file3 = 'vessel_express\\_tests\\images\\threshold.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\Raw_liver_1.tiff'
+    file3 = 'src\\vessel_express\\_tests\\images\\threshold.npy'
     image1 = imread(file1)
     image3 = np.load(file3)
     
@@ -86,10 +86,10 @@ def test_vesselness(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\Raw_liver_1.tiff'
-    file3 = 'vessel_express\\_tests\\images\\ves_li.npy'
-    file4 = 'vessel_express\\_tests\\images\\ves_otsu.npy'
-    file5 = 'vessel_express\\_tests\\images\\ves_triangle.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\Raw_liver_1.tiff'
+    file3 = 'src\\vessel_express\\_tests\\images\\ves_li.npy'
+    file4 = 'src\\vessel_express\\_tests\\images\\ves_otsu.npy'
+    file5 = 'src\\vessel_express\\_tests\\images\\ves_triangle.npy'
     image1 = imread(file1)
     image3 = np.load(file3)
     image4 = np.load(file4)
@@ -113,12 +113,12 @@ def test_merge(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\threshold.npy'
-    file2 = 'vessel_express\\_tests\\images\\ves_li.npy'
-    file3 = 'vessel_express\\_tests\\images\\ves_otsu.npy'
-    file4 = 'vessel_express\\_tests\\images\\ves_triangle.npy'
-    file5 = 'vessel_express\\_tests\\images\\merge_2layers.npy'
-    file6 = 'vessel_express\\_tests\\images\\merge_3layers.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\threshold.npy'
+    file2 = 'src\\vessel_express\\_tests\\images\\ves_li.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\ves_otsu.npy'
+    file4 = 'src\\vessel_express\\_tests\\images\\ves_triangle.npy'
+    file5 = 'src\\vessel_express\\_tests\\images\\merge_2layers.npy'
+    file6 = 'src\\vessel_express\\_tests\\images\\merge_3layers.npy'
 
     image1 = np.load(file1)
     image2 = np.load(file2)
@@ -141,8 +141,8 @@ def test_closing(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\merge_2layers.npy'
-    file3 = 'vessel_express\\_tests\\images\\closing.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\merge_2layers.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\closing.npy'
     image1 = np.load(file1)
     image3 = np.load(file3)
 
@@ -155,8 +155,8 @@ def test_hole_removal(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\closing.npy'
-    file3 = 'vessel_express\\_tests\\images\\hole_removal.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\closing.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\hole_removal.npy'
     image1 = np.load(file1)
     image3 = np.load(file3)
 
@@ -170,8 +170,8 @@ def test_thinning(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\hole_removal.npy'
-    file3 = 'vessel_express\\_tests\\images\\thinning.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\hole_removal.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\thinning.npy'
     image1 = np.load(file1)
     image3 = np.load(file3)
 
@@ -185,8 +185,8 @@ def test_cleaning(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\thinning.npy'
-    file3 = 'vessel_express\\_tests\\images\\cleaning.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\thinning.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\cleaning.npy'
     image1 = np.load(file1)
     image3 = np.load(file3)
 
@@ -200,8 +200,8 @@ def test_skeleton(make_napari_viewer):
     viewer = make_napari_viewer()
     para_tuning = ParameterTuning(viewer)
 
-    file1 = 'vessel_express\\_tests\\images\\cleaning.npy'
-    file3 = 'vessel_express\\_tests\\images\\skeleton.npy'
+    file1 = 'src\\vessel_express\\_tests\\images\\cleaning.npy'
+    file3 = 'src\\vessel_express\\_tests\\images\\skeleton.npy'
     image1 = np.load(file1)
     image3 = np.load(file3)
 
