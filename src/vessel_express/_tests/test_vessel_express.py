@@ -37,7 +37,7 @@ def test_add_image(make_napari_viewer):
     assert string1 == 'Raw_liver_1'
     assert np.array_equal(image1, image2)
 
-
+'''
 @pytest.mark.isotropic
 def test_isotropic(make_napari_viewer):
     # 06.07.2022
@@ -65,6 +65,7 @@ def test_isotropic(make_napari_viewer):
             break
     
     assert np.array_equal(image2, image3)
+'''
 
 @pytest.mark.threshold
 def test_threshold(make_napari_viewer):
