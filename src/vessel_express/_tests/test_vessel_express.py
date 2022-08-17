@@ -4,6 +4,7 @@ from tifffile import imread
 from napari.layers import Image
 from vessel_express import ParameterTuning
 
+
 @pytest.mark.smoothing
 def test_smoothing(make_napari_viewer):
     viewer = make_napari_viewer()
@@ -16,6 +17,7 @@ def test_smoothing(make_napari_viewer):
 
     image2 = para_tuning._smoothing(preset = True, data = image1)
     assert np.array_equal(image2, image3)
+
 
 @pytest.mark.add_image
 def test_add_image(make_napari_viewer):
@@ -37,7 +39,7 @@ def test_add_image(make_napari_viewer):
     assert string1 == 'Raw_liver_1'
     assert np.array_equal(image1, image2)
 
-'''
+
 @pytest.mark.isotropic
 def test_isotropic(make_napari_viewer):
     # 06.07.2022
@@ -45,7 +47,7 @@ def test_isotropic(make_napari_viewer):
     para_tuning = ParameterTuning(viewer)
 
     file1 = 'src/vessel_express/_tests/images/Raw_liver_1.tiff'
-    file3 = 'src/vessel_express/_tests/images/isotropic.npy'
+    file3 = 'src/vessel_express/_tests/images/isotropic_linux.npy'
     image1 = imread(file1)
     image3 = np.load(file3)
     
@@ -65,7 +67,7 @@ def test_isotropic(make_napari_viewer):
             break
     
     assert np.array_equal(image2, image3)
-'''
+
 
 @pytest.mark.threshold
 def test_threshold(make_napari_viewer):
@@ -80,6 +82,7 @@ def test_threshold(make_napari_viewer):
     
     image2 = para_tuning._threshold(preset = True, image = image1, scale = 2.0)
     assert np.array_equal(image2, image3)
+
 
 @pytest.mark.vesselness
 def test_vesselness(make_napari_viewer):
@@ -107,6 +110,7 @@ def test_vesselness(make_napari_viewer):
     image2 = para_tuning._vesselness(preset = True, image = image1, sigma = 2,
         gamma = 10, cutoff_method = 'threshold_triangle')
     assert np.array_equal(image2, image5)
+
 
 @pytest.mark.merge
 def test_merge(make_napari_viewer):
@@ -136,6 +140,7 @@ def test_merge(make_napari_viewer):
     assert np.array_equal(image7, image5)
     assert np.array_equal(image8, image6)
 
+
 @pytest.mark.closing
 def test_closing(make_napari_viewer):
     # 14.07.2022
@@ -149,6 +154,7 @@ def test_closing(make_napari_viewer):
 
     image2 = para_tuning._closing(preset = True, image = image1, kernel = 5)
     assert np.array_equal(image2, image3)
+
 
 @pytest.mark.hole_removal
 def test_hole_removal(make_napari_viewer):
@@ -165,6 +171,7 @@ def test_hole_removal(make_napari_viewer):
         max_size = 10)
     assert np.array_equal(image2, image3)
 
+
 @pytest.mark.thinning
 def test_thinning(make_napari_viewer):
     # 15.07.2022
@@ -180,6 +187,7 @@ def test_thinning(make_napari_viewer):
         min_thickness = 1, thin = 1)
     assert np.array_equal(image2, image3)
 
+
 @pytest.mark.cleaning
 def test_cleaning(make_napari_viewer):
     # 15.07.2022
@@ -194,6 +202,7 @@ def test_cleaning(make_napari_viewer):
     image2 = para_tuning._cleaning(preset = True, image = image1,
         min_size = 100)
     assert np.array_equal(image2, image3)
+
 
 @pytest.mark.skeleton
 def test_skeleton(make_napari_viewer):
