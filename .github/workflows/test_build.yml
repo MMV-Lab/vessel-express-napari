@@ -5,6 +5,9 @@ name: test build
 
 on: pull_request
 
+env:
+    CODECOV_TOKEN: 'ae768457-6129-4ff8-bc7d-74ab1b32bd2f'
+
 jobs:
   test:
     name: ${{ matrix.platform }} py${{ matrix.python-version }}
@@ -23,7 +26,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # these libraries enable testing on Qt on linux
-      - uses: tlambert03/setup-qt-libs@v1
+      - name: Install Linux libraries
+        if: runner.os == 'Linux'
+        uses: tlambert03/setup-qt-libs@v1
 
       # these libraries, along with pytest-xvfb (added in the 'deps' in tox.ini),
       # enable testing on Qt on linux
