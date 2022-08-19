@@ -5,9 +5,6 @@ name: test build
 
 on: pull_request
 
-env:
-    CODECOV_TOKEN: 'ae768457-6129-4ff8-bc7d-74ab1b32bd2f'
-
 jobs:
   test:
     name: ${{ matrix.platform }} py${{ matrix.python-version }}
@@ -62,4 +59,13 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
 
       - name: Coverage
-        uses: codecov/codecov-action@v1
+        env:
+            CODECOV_TOKEN: 'ae768457-6129-4ff8-bc7d-74ab1b32bd2f'
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ CODECOV_TOKEN }} # not required for public repos
+            files: ./coverage1.xml,./coverage2.xml # optional
+            flags: unittests # optional
+            name: codecov-umbrella # optional
+            fail_ci_if_error: true # optional (default = false)
+            verbose: true # optional (default = false)
