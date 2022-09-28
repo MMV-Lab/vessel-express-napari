@@ -1,0 +1,16 @@
+name: vessel-express-napari
+display_name: Vessel Segmentation Tool
+schema_version: 0.1.0
+contributions:
+  commands:
+  - id: vessel-express-napari.ParameterTuning
+    title: Create Parameter Tuning
+    python_name: vessel_express._dock_widget:ParameterTuning
+  - id: vessel-express-napari.Evaluation
+    title: Create Evaluation
+    python_name: vessel_express._dock_widget:Evaluation
+  widgets:
+  - command: vessel-express-napari.ParameterTuning
+    display_name: Parameter Tuning
+  - command: vessel-express-napari.Evaluation
+    display_name: Evaluation
