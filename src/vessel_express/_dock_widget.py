@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit, QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox, QCheckBox, QGridLayout, QScrollArea
+from qtpy.QtWidgets import QComboBox, QLabel, QSizePolicy, QToolBox, QLineEdit, QWidget, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QScrollArea, QFileDialog, QMessageBox, QCheckBox, QGridLayout, QScrollArea, QTabWidget
 from inspect import CORO_CLOSED
 from qtpy.QtCore import Qt
 from napari.layers import Image
@@ -21,7 +21,9 @@ class ParameterTuning(QWidget):
         self.processing_values = [False, False, False, 0, 0, 0, "", 0, 0, 0, "", 0]
 
         # Labels
-        self.l_title = QLabel("<font color='green'>VesselExpress Segmentation Parameter Tuning:</font>")
+        self.l_title_seg = QLabel("<font color='green'>VesselExpress Segmentation Parameter Tuning:</font>")
+        self.l_title_graph = QLabel("<font color='green'>VesselExpress Graph Construction Parameter Tuning:</font>")
+        self.l_title_analysis = QLabel("<font color='green'>VesselExpress Analysis Parameter Tuning:</font>")
         l_scale = QLabel("scale")
         l_sigma_1 = QLabel("sigma")
         l_gamma_1 = QLabel("gamma")
@@ -291,28 +293,46 @@ class ParameterTuning(QWidget):
         self.segmentation.layout().addWidget(vess_2_c)
 
         # Layouting
-        self.content = QWidget()
-        self.content.setLayout(QVBoxLayout())
-        self.content.layout().addWidget(self.l_title)
-        self.content.layout().addWidget(btn_load_config)
-        self.content.layout().addWidget(line_1)
+        self.content_seg = QWidget()
+        self.content_seg.setLayout(QVBoxLayout())
+        self.content_seg.layout().addWidget(self.l_title_seg)
+        self.content_seg.layout().addWidget(btn_load_config)
+        self.content_seg.layout().addWidget(line_1)
         processing = QWidget()
         processing.setLayout(QHBoxLayout())
         processing.layout().addWidget(self.btn_show_more)
-        #processing.layout().addWidget(self.btn_process)
-        self.content.layout().addWidget(processing)
-        self.content.layout().addWidget(line_2)
-        self.content.layout().addWidget(self.btn_add_widget)
-        self.content.layout().addWidget(line_3)
+        self.content_seg.layout().addWidget(processing)
+        self.content_seg.layout().addWidget(line_2)
+        self.content_seg.layout().addWidget(self.btn_add_widget)
+        self.content_seg.layout().addWidget(line_3)
         batch_save = QWidget()
         batch_save.setLayout(QHBoxLayout())
         batch_save.layout().addWidget(btn_batch_process)
         batch_save.layout().addWidget(btn_save_config)
-        self.content.layout().addWidget(batch_save)
+        self.content_seg.layout().addWidget(batch_save)
+        
+        self.tab_widget = QTabWidget()
+        self.tab_widget.addTab(self.content_seg, "Segmentation")
+        
+        self.content_graph = QWidget()
+        self.content_graph.setLayout(QVBoxLayout())
+        self.content_graph.layout().addWidget(self.l_title_graph)
+        placeholder = QLabel("This is where Graph Construction will take place")
+        btn_import_seg = QPushButton("Import Segmentation")
+        btn_import_seg.clicked.connect(self._import_segmentation)
+        self.content_graph.layout().addWidget(placeholder)
+        self.content_graph.layout().addWidget(btn_import_seg)
+        self.tab_widget.addTab(self.content_graph, "Graph Construction")
+        self.content_analysis = QWidget()
+        self.content_analysis.setLayout(QVBoxLayout())
+        self.content_analysis.layout().addWidget(self.l_title_analysis)
+        placeholder2 = QLabel("This is where Analysis will be done")
+        self.content_analysis.layout().addWidget(placeholder2)
+        self.tab_widget.addTab(self.content_analysis, "Analysis")
         
         self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.content)
-        self.setMinimumSize(400,800)
+        self.scroll_area.setWidget(self.tab_widget)
+        self.setMinimumSize(420,800)
         self.scroll_area.setWidgetResizable(True)
         
         # Setting layout
@@ -327,18 +347,18 @@ class ParameterTuning(QWidget):
     def _toggle_segmentation(self):
         if self.btn_show_more.text() == "+":
             self.btn_show_more.setText("-")
-            self.content.layout().itemAt(3).widget().layout().addWidget(self.btn_process)
+            self.content_seg.layout().itemAt(3).widget().layout().addWidget(self.btn_process)
             self.btn_process.show()
-            self.content.layout().insertWidget(4,self.segmentation)
-            self.content.layout().insertWidget(5,self.btn_accept)
+            self.content_seg.layout().insertWidget(4,self.segmentation)
+            self.content_seg.layout().insertWidget(5,self.btn_accept)
             self.segmentation.show()
             self.btn_accept.show()
         else:
             self.btn_show_more.setText("+")
-            self.content.layout().itemAt(3).widget().layout().removeWidget(self.btn_process)
+            self.content_seg.layout().itemAt(3).widget().layout().removeWidget(self.btn_process)
             self.btn_process.hide()
-            self.content.layout().removeWidget(self.segmentation)
-            self.content.layout().removeWidget(self.btn_accept)
+            self.content_seg.layout().removeWidget(self.segmentation)
+            self.content_seg.layout().removeWidget(self.btn_accept)
             self.segmentation.hide()
             self.btn_accept.hide()
         
@@ -498,7 +518,7 @@ class ParameterTuning(QWidget):
         helper_widget.layout().addWidget(button)
         widget.layout().addWidget(helper_widget)
         widget.layout().addWidget(line)
-        self.content.layout().insertWidget(self.content.layout().count() - 1,widget)
+        self.content_seg.layout().insertWidget(self.content_seg.layout().count() - 1,widget)
         
     def _process(self):
         for layer in self.viewer.layers:
@@ -570,8 +590,9 @@ class ParameterTuning(QWidget):
                                   self.s_sigma_2.value()/2, self.s_gamma_2.value(), self.c_cutoff_2.currentText(), self.le_cutoff_2.text()]
         
     def _post_process(self,widget):
-        if self.content.layout().count() - 2 > self.content.layout().indexOf(widget):
+        if self.content_seg.layout().count() - 2 > self.content_seg.layout().indexOf(widget):
             widget.setEnabled(False)
+            
         
         layer_name = widget.layout().itemAt(0).widget().layout().itemAt(1).widget().currentText()
         operation = widget.layout().itemAt(0).widget().layout().itemAt(0).widget().currentText()
@@ -591,13 +612,6 @@ class ParameterTuning(QWidget):
             print("how did you even end up here?")
         self.viewer.layers[self.viewer.layers.index(layer_name)].visible = False
             
-            
-            
-        """print(self.content.layout().count())
-        print(self.content.layout().indexOf(widget))"""
-        """print(widget.layout().itemAt(0).widget().currentText())
-        print(widget.layout().itemAt(1).widget().layout().itemAt(0).widget().text())"""
-
         
     def _save_config(self):
         filename = QFileDialog.getSaveFileName()
@@ -606,16 +620,18 @@ class ParameterTuning(QWidget):
         vesselness_2 = {"used" : self.ch_vesselness_2.isChecked(),"gamma" : self.s_gamma_2.value(),"sigma" : self.s_sigma_2.value()/2}
         processing = {"threshold" : threshold,"vesselness 1": vesselness_1,"vesselness 2":vesselness_2}        
         post_processing = []
-        for i in range(7,self.content.layout().count()-1):
-            if self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().currentText() == "thinning":
-                post_processing.append({"thinning" : { "min_thick" : self.content.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(1).widget().text(),"thin" : self.content.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(3).widget().layout().itemAt(1).widget().text()}})
+        for i in range(7,self.content_seg.layout().count()-1):
+            if self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().currentText() == "thinning":
+                post_processing.append({"thinning" : { "min_thick" : self.content_seg.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(1).widget().text(),"thin" : self.content_seg.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(3).widget().layout().itemAt(1).widget().text()}})
             else:
-                post_processing.append({self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().currentText() : {self.content.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().text() : self.content.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(1).widget().text()}})
+                post_processing.append({self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().currentText() : {self.content_seg.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().text() : self.content_seg.layout().itemAt(i).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(1).widget().text()}})
         config = [{"post-processing" : post_processing,"processing" : processing}]
-        
-        with open(filename[0], 'w') as file:
-            yaml.dump(config,file)
-        pass
+        try:
+            with open(filename[0], 'w') as file:
+                yaml.dump(config,file)
+            pass
+        except FileNotFoundError:
+            print("File not found, try again")
     
     def _load_config(self):
         filename = QFileDialog.getOpenFileName()
@@ -643,49 +659,62 @@ class ParameterTuning(QWidget):
             if self.btn_show_more.text() == "-":
                 j += 2
             if str(list(post_processing[i].keys())[0]) == "closing":
-                self.content.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("closing")
-                self.content.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["closing"]["kernel"])
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("closing")
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["closing"]["kernel"])
                 pass
             elif str(list(post_processing[i].keys())[0]) == "hole_removal":
-                self.content.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("hole_removal")
-                self.content.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["hole_removal"]["max_size"])
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("hole_removal")
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["hole_removal"]["max_size"])
                 pass
             elif str(list(post_processing[i].keys())[0]) == "thinning":
-                self.content.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("thinning")
-                self.content.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(int(post_processing[i]["thinning"]["min_thick"]*2))
-                self.content.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(3).widget().layout().itemAt(0).widget().setValue(post_processing[i]["thinning"]["thin"])
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("thinning")
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(int(post_processing[i]["thinning"]["min_thick"]*2))
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(3).widget().layout().itemAt(0).widget().setValue(post_processing[i]["thinning"]["thin"])
                 pass
             elif str(list(post_processing[i].keys())[0]) == "cleaning":
-                self.content.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("cleaning")
-                self.content.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["cleaning"]["min_size"])
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(0).widget().layout().itemAt(0).widget().setCurrentText("cleaning")
+                self.content_seg.layout().itemAt(j).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().layout().itemAt(0).widget().setValue(post_processing[i]["cleaning"]["min_size"])
                 pass
             else:
                 print("never should have come here")
             
+    def _import_segmentation(self):
+        filename = QFileDialog.getOpenFileName()
+        try:
+            with open(filename[0]) as file:
+                segmentation = np.load(file)
+        except FileNotFoundError:
+            print("File not found, try again")
+            return
+        except UnsupportedOperation:
+            print("Please select a numpy array")
+            return
+        self.viewer.add_image(data = segmentation, name = "Segmentation", blending="additive")
+        pass
     
     def _batch_process(self):
         pass
         
-    def _update_layer_lists(self,event):
+    def _update_layer_lists(self,event): # TODO: don't update layer selector comboboxes at or above current calculation step
         j = 7
         if self.btn_show_more.text() == "-":
             j += 2
-        for i in range(j,self.content.layout().count()-1):
+        for i in range(j,self.content_seg.layout().count()-1):
             if event.type == "inserted":
-                self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().insertItem(0,event.value.name)
-                self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(0)
+                self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().insertItem(0,event.value.name)
+                self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(0)
 
             elif event.type == "removed":
-                self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().removeItem(len(self.viewer.layers) - event.index)
+                self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().removeItem(len(self.viewer.layers) - event.index)
 
             elif event.type == "moved":
-                selection =  self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().currentIndex()
-                self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().removeItem(len(self.viewer.layers) - 1 - event.index)
-                self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().insertItem(len(self.viewer.layers) - 1 - event.new_index,event.value.name)
+                selection =  self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().currentIndex()
+                self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().removeItem(len(self.viewer.layers) - 1 - event.index)
+                self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().insertItem(len(self.viewer.layers) - 1 - event.new_index,event.value.name)
                 if event.index == selection:
-                    self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(event.new_index)
+                    self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(event.new_index)
                 elif event.new_index == selection:
-                    self.content.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(event.index)
+                    self.content_seg.layout().itemAt(i).widget().layout().itemAt(0).widget().layout().itemAt(1).widget().setCurrentIndex(event.index)
             else:
                 print("Something went wrong when identifying the type of event emitted!")
                 
