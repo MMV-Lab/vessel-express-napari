@@ -64,4 +64,5 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
-[quick start guide]: https://github.com/MMV-Lab/vessel-express-napari/quick_start.md
+[quick start guide]: https://github.com/MMV-Lab/vessel-express-napari/blob/main/quick_start.md
+
