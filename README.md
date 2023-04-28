@@ -1,11 +1,11 @@
 # vessel-express-napari
 
 [![License](https://img.shields.io/pypi/l/vessel-express-napari.svg?color=green)](https://github.com/MMV-Lab/vessel-express-napari/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/vessel-express-napari.svg?color=green)](https://pypi.org/project/vessel-express)
+[![PyPI](https://img.shields.io/pypi/v/vessel-express-napari.svg?color=green)](https://pypi.org/project/vessel-express-napari/)
 [![Python Version](https://img.shields.io/pypi/pyversions/vessel-express-napari.svg?color=green)](https://python.org)
 [![tests](https://github.com/MMV-Lab/vessel-express-napari/workflows/tests/badge.svg)](https://github.com/MMV-Lab/vessel-express-napari/actions)
 [![codecov](https://codecov.io/gh/MMV-Lab/vessel-express-napari/branch/main/graph/badge.svg?token=mJPpDiioxu)](https://codecov.io/gh/MMV-Lab/vessel-express-napari)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express-napari)](https://napari-hub.org/plugins/vessel-express)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/vessel-express-napari)](https://www.napari-hub.org/plugins/vessel-express-napari)
 
 A simple plugin for 3D vessel segmentation of LSFM images
 
